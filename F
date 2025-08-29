@@ -1,0 +1,105 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Fyy Exploit",
+    Icon = 0,
+    LoadingTitle = "Fyy Exploit",
+    LoadingSubtitle = "by Fyy",
+    ShowText = "Fyy Exploit",
+    Theme = "Ocean",
+    ToggleUIKeybind = "K",
+
+    DisableRayfieldPrompts = false,
+    DisableBuildWarnings = false,
+
+    ConfigurationSaving = {
+        Enabled = true,
+        FolderName = nil,
+        FileName = "Big Hub"
+    },
+
+    Discord = {
+        Enabled = false,
+        Invite = "noinvitelink",
+        RememberJoins = false
+    },
+
+    KeySystem = false,
+    KeySettings = {
+        Title = "Untitled",
+        Subtitle = "Key System",
+        Note = "No method of obtaining the key is provided",
+        FileName = "Key",
+        SaveKey = true,
+        GrabKeyFromSite = false,
+        Key = {"Hello"}
+    }
+})
+
+-- Daftar koordinat teleport (8 posisi)
+local Teleports = {
+    {Name = "CheckPoint 1", Pos = Vector3.new(-785, 87, -652)},
+    {Name = "CheckPoint 2", Pos = Vector3.new(-986, 184, -79)},
+    {Name = "CheckPoint 3", Pos = Vector3.new(-955, 178, 807)},
+    {Name = "CheckPoint 4", Pos = Vector3.new(796, 186, 876)},
+    {Name = "CheckPoint 5", Pos = Vector3.new(971, 98, 136)},
+    {Name = "CheckPoint 6", Pos = Vector3.new(982, 144, -535)},
+    {Name = "CheckPoint 7", Pos = Vector3.new(401, 122, -230)},
+    {Name = "SUMMIT DEK", Pos = Vector3.new(3, 435, 95)},
+}
+
+-- Global loop state
+local GlobalLoop = false
+
+-- Fungsi teleport
+local function TeleportTo(pos)
+    local player = game.Players.LocalPlayer
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(pos)
+    end
+end
+
+-- Fungsi respawn
+local function RespawnPlayer()
+    local player = game.Players.LocalPlayer
+    if player.Character then
+        player.Character:BreakJoints() -- ini bakal paksa respawn
+    end
+end
+
+-- Buat 1 tab utama
+local Tab = Window:CreateTab("Mount Ravika", 4483362458)
+local Section = Tab:CreateSection("Teleport Menu")
+
+-- Buat button teleport untuk masing-masing XYZ
+for _, tp in ipairs(Teleports) do
+    Tab:CreateButton({
+        Name = tp.Name,
+        Callback = function()
+            TeleportTo(tp.Pos)
+        end,
+    })
+end
+
+-- Toggle untuk loop semua teleport + respawn di akhir
+Tab:CreateToggle({
+    Name = "Auto Summit Dek",
+    CurrentValue = false,
+    Flag = "GlobalLoop",
+    Callback = function(Value)
+        GlobalLoop = Value
+        task.spawn(function()
+            while GlobalLoop do
+                for i, tp in ipairs(Teleports) do
+                    if not GlobalLoop then break end
+                    TeleportTo(tp.Pos)
+                    task.wait(1)
+                end
+                if GlobalLoop then
+                    RespawnPlayer()
+                    task.wait(3) -- kasih delay dikit biar respawn sempurna
+                end
+            end
+        end)
+    end,
+})
