@@ -1,6 +1,3 @@
--- =====================
--- MT Arunika GUI CoreGui + Drag + Scroll + AUTO SUMMIT + STOP + Speed Input
--- =====================
 local player = game.Players.LocalPlayer
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
