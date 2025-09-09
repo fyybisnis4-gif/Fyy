@@ -138,16 +138,16 @@ autoBtn.BackgroundColor3 = Color3.fromRGB(0, 30, 0)
 autoBtn.TextColor3 = Color3.fromRGB(180, 255, 180)
 autoBtn.TextScaled = true
 
--- Respawn function
+-- Respawn function using Health = 0
 local function respawnPlayer()
     local char = player.Character
     if char then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then
-            hrp.CFrame = CFrame.new(0, -500, 0)
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid.Health = 0
         end
     end
-    player:LoadCharacter()
+    player.CharacterAdded:Wait()
 end
 
 -- Auto Summit logic
@@ -159,12 +159,12 @@ local function autoSummit()
             if not running then return end
             playTrack(savedTracks[name])
             if not running then return end
-            task.wait(8)
+            task.wait(8) -- wait between tracks
         end
-        task.wait(3)
+        task.wait(3) -- wait before respawn
         if not running then return end
         respawnPlayer()
-        task.wait(1.5)
+        task.wait(2) -- wait for character to load
     end
 end
 
