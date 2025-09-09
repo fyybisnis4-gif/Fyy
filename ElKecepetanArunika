@@ -9,7 +9,7 @@ local player = game.Players.LocalPlayer
 -- Multi-track URLs
 local tracksURLs = {
     ["BC - 1"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP1.json",
-    ["CP 1 - CP 2"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP2.json", 
+    ["CP 1 - CP 2"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP2.json",
     ["CP 2 - CP 3"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP2-2.json",
     ["CP 3 - CP 4"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP3.json",
     ["CP 4 - CP 5"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP4.json",
@@ -34,7 +34,7 @@ for name, url in pairs(tracksURLs) do
     end
 end
 
--- Variabel
+-- Variables
 local running = false
 local speed = 0.01 -- default speed
 
@@ -98,18 +98,20 @@ Scroll.Size = UDim2.new(0.9, 0, 0, 180)
 Scroll.Position = UDim2.new(0.05, 0, 0, 75)
 Scroll.BackgroundTransparency = 1
 Scroll.ScrollBarThickness = 6
-Scroll.CanvasSize = UDim2.new(0, 0, 0, 240) -- Adjusted CanvasSize
+Scroll.CanvasSize = UDim2.new(0, 0, 0, 240)
 Scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
 local UIList = Instance.new("UIListLayout", Scroll)
 UIList.Padding = UDim.new(0, 5)
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
 
--- Add Track Buttons in the right order
+-- Track Order
 local orderedTrackNames = {
-    "BC - 1", "CP 1 - CP 2", "CP 2 - CP 3", "CP 3 - CP 4", "CP 4 - CP 5", "CP 5 - SUMMIT"
+    "BC - 1", "CP 1 - CP 2", "CP 2 - CP 3",
+    "CP 3 - CP 4", "CP 4 - CP 5", "CP 5 - SUMMIT"
 }
 
+-- Individual Track Buttons
 for _, name in ipairs(orderedTrackNames) do
     local btn = Instance.new("TextButton", Scroll)
     btn.Size = UDim2.new(1, 0, 0, 35)
@@ -128,6 +130,52 @@ for _, name in ipairs(orderedTrackNames) do
     end)
 end
 
+-- Auto Summit Button
+local autoBtn = Instance.new("TextButton", Scroll)
+autoBtn.Size = UDim2.new(1, 0, 0, 35)
+autoBtn.Text = "Auto Summit"
+autoBtn.BackgroundColor3 = Color3.fromRGB(0, 30, 0)
+autoBtn.TextColor3 = Color3.fromRGB(180, 255, 180)
+autoBtn.TextScaled = true
+
+-- Respawn function
+local function respawnPlayer()
+    local char = player.Character
+    if char then
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = CFrame.new(0, -500, 0)
+        end
+    end
+    player:LoadCharacter()
+end
+
+-- Auto Summit logic
+local function autoSummit()
+    if running then return end
+    running = true
+    while running do
+        for _, name in ipairs(orderedTrackNames) do
+            if not running then return end
+            playTrack(savedTracks[name])
+            if not running then return end
+            task.wait(8)
+        end
+        task.wait(3)
+        if not running then return end
+        respawnPlayer()
+        task.wait(1.5)
+    end
+end
+
+autoBtn.MouseButton1Click:Connect(function()
+    if running then return end
+    coroutine.wrap(function()
+        autoSummit()
+        running = false
+    end)()
+end)
+
 -- STOP Button
 local stopBtn = Instance.new("TextButton", Frame)
 stopBtn.Size = UDim2.new(0.9, 0, 0, 40)
@@ -141,7 +189,7 @@ stopBtn.MouseButton1Click:Connect(function()
     running = false
 end)
 
--- Minimize Button (Fyy Logo)
+-- Minimize Button
 local closeBtn = Instance.new("TextButton", Frame)
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -35, 0, 0)
@@ -152,7 +200,6 @@ closeBtn.TextScaled = true
 Instance.new("UICorner", closeBtn).CornerRadius = UDim.new(1, 0)
 
 closeBtn.MouseButton1Click:Connect(function()
-    -- Mengubah tombol X menjadi tombol "Fyy" berbentuk bulat saat ditekan
     Frame.Visible = false
     local logoBtn = Instance.new("TextButton", ScreenGui)
     logoBtn.Size = UDim2.new(0, 40, 0, 40)
@@ -164,13 +211,12 @@ closeBtn.MouseButton1Click:Connect(function()
     Instance.new("UICorner", logoBtn).CornerRadius = UDim.new(1, 0)
 
     logoBtn.MouseButton1Click:Connect(function()
-        -- Show frame again when clicked
         Frame.Visible = true
-        logoBtn:Destroy()  -- Remove the logo when the menu is restored
+        logoBtn:Destroy()
     end)
 end)
 
--- Drag Function (for entire menu including the logo)
+-- Drag Function
 local function setupDrag(target)
     local dragging, dragStart, startPos
     target.InputBegan:Connect(function(input)
@@ -197,4 +243,4 @@ local function setupDrag(target)
         end
     end)
 end
-setupDrag(Frame)  -- Dragging enabled for the whole frame
+setupDrag(Frame)
