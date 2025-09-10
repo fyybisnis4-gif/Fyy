@@ -3,17 +3,18 @@ local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 
 local player = game.Players.LocalPlayer
 
 -- Multi-track URLs
 local tracksURLs = {
-    ["BC - 1"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP1.json",
-    ["CP 1 - CP 2"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP2.json",
-    ["CP 2 - CP 3"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP2-2.json",
-    ["CP 3 - CP 4"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP3.json",
-    ["CP 4 - CP 5"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP4.json",
-    ["CP 5 - SUMMIT"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/CP5.json",
+    ["BC - 1"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/BC_ARUNIKA.json",
+    ["CP 1 - CP 2"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/Arunika_cp1.json", 
+    ["CP 2 - CP 3"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/Arunika_cp2.json",
+    ["CP 3 - CP 4"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/Arunika_cp3.json",
+    ["CP 4 - CP 5"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/Arunika_cp4.json",
+    ["CP 5 - SUMMIT"] = "https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/SUMMIT_ARUNIKA.json",
 }
 
 local savedTracks = {}
@@ -34,24 +35,18 @@ for name, url in pairs(tracksURLs) do
     end
 end
 
--- Variables
+-- Variabel
 local running = false
-local speed = 0.01 -- default speed
+local speed = 16  -- default speed
 
 local function getHRP()
     local char = player.Character or player.CharacterAdded:Wait()
     return char:WaitForChild("HumanoidRootPart")
 end
 
--- Replay function
-local function playTrack(track)
-    if not track or #track < 2 then return end
-    local hrp = getHRP()
-    for i = 1, #track do
-        if not running then break end
-        hrp.CFrame = CFrame.new(track[i])
-        task.wait(speed)
-    end
+-- Respawn function
+local function respawnPlayer()
+    player.Character:BreakJoints()
 end
 
 -- GUI Setup
@@ -74,7 +69,7 @@ Title.TextScaled = true
 local speedBox = Instance.new("TextBox", Frame)
 speedBox.Size = UDim2.new(0.9, 0, 0, 40)
 speedBox.Position = UDim2.new(0.05, 0, 0, 40)
-speedBox.PlaceholderText = "Speed (default 0.01)"
+speedBox.PlaceholderText = "Speed (default 16)"
 speedBox.Text = tostring(speed)
 speedBox.TextColor3 = Color3.fromRGB(180, 180, 180)
 speedBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -94,8 +89,8 @@ end)
 
 -- Scrollable Button Frame
 local Scroll = Instance.new("ScrollingFrame", Frame)
-Scroll.Size = UDim2.new(0.9, 0, 0, 180)
-Scroll.Position = UDim2.new(0.05, 0, 0, 75)
+Scroll.Size = UDim2.new(0.9, 0, 0, 150)
+Scroll.Position = UDim2.new(0.05, 0, 0, 85)
 Scroll.BackgroundTransparency = 1
 Scroll.ScrollBarThickness = 6
 Scroll.CanvasSize = UDim2.new(0, 0, 0, 240)
@@ -105,13 +100,11 @@ local UIList = Instance.new("UIListLayout", Scroll)
 UIList.Padding = UDim.new(0, 5)
 UIList.SortOrder = Enum.SortOrder.LayoutOrder
 
--- Track Order
+-- Track buttons
 local orderedTrackNames = {
-    "BC - 1", "CP 1 - CP 2", "CP 2 - CP 3",
-    "CP 3 - CP 4", "CP 4 - CP 5", "CP 5 - SUMMIT"
+    "BC - 1", "CP 1 - CP 2", "CP 2 - CP 3", "CP 3 - CP 4", "CP 4 - CP 5", "CP 5 - SUMMIT"
 }
 
--- Individual Track Buttons
 for _, name in ipairs(orderedTrackNames) do
     local btn = Instance.new("TextButton", Scroll)
     btn.Size = UDim2.new(1, 0, 0, 35)
@@ -130,48 +123,28 @@ for _, name in ipairs(orderedTrackNames) do
     end)
 end
 
--- Auto Summit Button
+-- === Auto Summit Loop Button ===
 local autoBtn = Instance.new("TextButton", Scroll)
 autoBtn.Size = UDim2.new(1, 0, 0, 35)
-autoBtn.Text = "Auto Summit"
-autoBtn.BackgroundColor3 = Color3.fromRGB(0, 30, 0)
-autoBtn.TextColor3 = Color3.fromRGB(180, 255, 180)
+autoBtn.Text = "AUTO SUMMIT (Loop)"
+autoBtn.BackgroundColor3 = Color3.fromRGB(0, 60, 100)
+autoBtn.TextColor3 = Color3.fromRGB(200, 200, 200)
 autoBtn.TextScaled = true
-
--- Respawn function using Health = 0
-local function respawnPlayer()
-    local char = player.Character
-    if char then
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.Health = 0
-        end
-    end
-    player.CharacterAdded:Wait()
-end
-
--- Auto Summit logic
-local function autoSummit()
-    if running then return end
-    running = true
-    while running do
-        for _, name in ipairs(orderedTrackNames) do
-            if not running then return end
-            playTrack(savedTracks[name])
-            if not running then return end
-            task.wait(8) -- wait between tracks
-        end
-        task.wait(3) -- wait before respawn
-        if not running then return end
-        respawnPlayer()
-        task.wait(2) -- wait for character to load
-    end
-end
 
 autoBtn.MouseButton1Click:Connect(function()
     if running then return end
+    running = true
     coroutine.wrap(function()
-        autoSummit()
+        while running do
+            for _, name in ipairs(orderedTrackNames) do
+                if not running then break end
+                playTrack(savedTracks[name])
+            end
+            if running then
+                respawnPlayer()
+                task.wait(5) -- jeda respawn
+            end
+        end
         running = false
     end)()
 end)
@@ -189,7 +162,7 @@ stopBtn.MouseButton1Click:Connect(function()
     running = false
 end)
 
--- Minimize Button
+-- Minimize Button (Fyy Logo)
 local closeBtn = Instance.new("TextButton", Frame)
 closeBtn.Size = UDim2.new(0, 30, 0, 30)
 closeBtn.Position = UDim2.new(1, -35, 0, 0)
@@ -244,3 +217,57 @@ local function setupDrag(target)
     end)
 end
 setupDrag(Frame)
+
+-- === Smooth PlayTrack Melayang 2 Stud ===
+local function simplifyTrack(track, minDistance)
+    local simple = {}
+    local lastPos = nil
+    for _, pos in ipairs(track) do
+        if not lastPos or (pos - lastPos).Magnitude >= minDistance then
+            table.insert(simple, pos)
+            lastPos = pos
+        end
+    end
+    return simple
+end
+
+-- FUNCTION PLAYTRACK YANG SUDAH DIPERBAIKI --
+function playTrack(track)
+    if not track or #track < 2 then return end
+    local hrp = getHRP()
+    local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+    
+    -- Buang titik terlalu rapet
+    local smoothTrack = simplifyTrack(track, 3)
+
+    for i = 2, #smoothTrack do
+        if not running then break end
+
+        local startPos = Vector3.new(smoothTrack[i-1].X, smoothTrack[i-1].Y, smoothTrack[i-1].Z)
+        local targetPos = Vector3.new(smoothTrack[i].X, smoothTrack[i].Y, smoothTrack[i].Z)
+        
+        local distance = (targetPos - startPos).Magnitude
+        local duration = distance / speed
+        local elapsed = 0
+
+        while elapsed < duration and running do
+            elapsed += RunService.Heartbeat:Wait()
+            local alpha = math.clamp(elapsed / duration, 0, 1)
+            local currentPos = startPos:Lerp(targetPos, alpha)
+            
+            -- Biarkan physics natural, cuma teleport ke posisi berikutnya
+            hrp.CFrame = CFrame.new(currentPos)
+            
+            -- Kasih jump power biar bisa lompati obstacle
+            if humanoid then
+                humanoid.JumpPower = 50
+                humanoid.Jump = true
+            end
+        end
+    end
+    
+    -- Reset jump power
+    if humanoid then
+        humanoid.JumpPower = 50
+    end
+end
