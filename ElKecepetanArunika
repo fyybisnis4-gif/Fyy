@@ -138,6 +138,12 @@ autoBtn.MouseButton1Click:Connect(function()
         while running do
             for _, name in ipairs(orderedTrackNames) do
                 if not running then break end
+                
+                -- TAMBAHIN DELAY 8 DETIK SEBELUM TRACK SELANJUTNYA
+                if _ > 1 then  -- Delay hanya untuk track setelah track pertama
+                    task.wait(8)  -- Delay 8 detik
+                end
+                
                 playTrack(savedTracks[name])
             end
             if running then
