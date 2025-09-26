@@ -1,0 +1,215 @@
+-- GUI Tahap 1: Pilihan User (Free/Premium)
+local ScreenGui = Instance.new("ScreenGui")
+local MainFrame = Instance.new("Frame")
+local TopBar = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local FreeButton = Instance.new("TextButton")
+local PremButton = Instance.new("TextButton")
+
+-- Properties untuk ScreenGui
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Name = "FyyCommunityGUI"
+
+-- Properties untuk Frame utama
+MainFrame.Parent = ScreenGui
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Position = UDim2.new(0.35, 0, 0.3, 0)
+MainFrame.Size = UDim2.new(0, 300, 0, 150)
+MainFrame.ClipsDescendants = true
+MainFrame.Active = true
+MainFrame.Draggable = true
+
+-- Membuat sudut membulat
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- TopBar dengan gradient
+TopBar.Parent = MainFrame
+TopBar.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+TopBar.BorderSizePixel = 0
+TopBar.Size = UDim2.new(1, 0, 0, 30)
+TopBar.ZIndex = 2
+
+local TopBarCorner = Instance.new("UICorner")
+TopBarCorner.CornerRadius = UDim.new(0, 8)
+TopBarCorner.Parent = TopBar
+
+-- Judul
+Title.Parent = TopBar
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = "PILIH AVA NYA SAYANG"
+Title.TextColor3 = Color3.fromRGB(220, 220, 220)
+Title.TextSize = 14
+
+-- Tombol Close
+CloseButton.Parent = TopBar
+CloseButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(1, -30, 0, 5)
+CloseButton.Size = UDim2.new(0, 20, 0, 20)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+CloseButton.TextSize = 12
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 10)
+CloseCorner.Parent = CloseButton
+
+-- Efek hover untuk CloseButton
+CloseButton.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(220, 70, 70)}):Play()
+end)
+
+CloseButton.MouseLeave:Connect(function()
+    game:GetService("TweenService"):Create(CloseButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+end)
+
+-- Tombol Free User
+FreeButton.Parent = MainFrame
+FreeButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+FreeButton.BorderSizePixel = 0
+FreeButton.Position = UDim2.new(0.05, 0, 0.25, 0)
+FreeButton.Size = UDim2.new(0, 270, 0, 40)
+FreeButton.Font = Enum.Font.GothamBold
+FreeButton.Text = "STANDARD"
+FreeButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+FreeButton.TextSize = 14
+
+local FreeCorner = Instance.new("UICorner")
+FreeCorner.CornerRadius = UDim.new(0, 6)
+FreeCorner.Parent = FreeButton
+
+-- Efek hover untuk FreeButton
+FreeButton.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(FreeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+end)
+
+FreeButton.MouseLeave:Connect(function()
+    game:GetService("TweenService"):Create(FreeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+end)
+
+-- Tombol Premium User
+PremButton.Parent = MainFrame
+PremButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+PremButton.BorderSizePixel = 0
+PremButton.Position = UDim2.new(0.05, 0, 0.6, 0)
+PremButton.Size = UDim2.new(0, 270, 0, 40)
+PremButton.Font = Enum.Font.GothamBold
+PremButton.Text = "TIANG LISTRIK"
+PremButton.TextColor3 = Color3.fromRGB(220, 220, 220)
+PremButton.TextSize = 14
+
+local PremCorner = Instance.new("UICorner")
+PremCorner.CornerRadius = UDim.new(0, 6)
+PremCorner.Parent = PremButton
+
+-- Efek hover untuk PremButton
+PremButton.MouseEnter:Connect(function()
+    game:GetService("TweenService"):Create(PremButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+end)
+
+PremButton.MouseLeave:Connect(function()
+    game:GetService("TweenService"):Create(PremButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+end)
+
+-- Shadow effect
+local Shadow = Instance.new("ImageLabel")
+Shadow.Parent = MainFrame
+Shadow.BackgroundTransparency = 1
+Shadow.Size = UDim2.new(1, 0, 1, 0)
+Shadow.ZIndex = -1
+Shadow.Image = "rbxassetid://1316045217"
+Shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+Shadow.ImageTransparency = 0.8
+Shadow.ScaleType = Enum.ScaleType.Slice
+Shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+
+-- Fungsi untuk menutup GUI dengan animasi
+local function CloseGUI()
+    local CloseTween = game:GetService("TweenService"):Create(
+        MainFrame,
+        TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In),
+        {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0)}
+    )
+    CloseTween:Play()
+    CloseTween.Completed:Connect(function()
+        ScreenGui:Destroy()
+    end)
+end
+
+-- Fungsi untuk tombol Free User
+FreeButton.MouseButton1Click:Connect(function()
+    local ClickTween = game:GetService("TweenService"):Create(
+        FreeButton,
+        TweenInfo.new(0.1),
+        {Size = UDim2.new(0, 260, 0, 35)}
+    )
+    ClickTween:Play()
+
+    ClickTween.Completed:Connect(function()
+        print("Free User dipilih - Memuat script...")
+        CloseGUI()
+        
+        -- Tunggu animasi penutupan selesai sebelum load script
+        wait(0.4)
+        
+        -- Load script Free
+        local success, errorMessage = pcall(function()
+           loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/WalkOnly/refs/heads/main/El%20Daun"))()
+        end)
+        
+        if not success then
+            warn("Gagal memuat script: " .. tostring(errorMessage))
+        end
+    end)
+end)
+
+-- Fungsi untuk tombol Premium User
+PremButton.MouseButton1Click:Connect(function()
+    local ClickTween = game:GetService("TweenService"):Create(
+        PremButton,
+        TweenInfo.new(0.1),
+        {Size = UDim2.new(0, 260, 0, 35)}
+    )
+    ClickTween:Play()
+
+    ClickTween.Completed:Connect(function()
+        print("Premium User dipilih - Memuat script...")
+        CloseGUI()
+        
+        -- Tunggu animasi penutupan selesai sebelum load script
+        wait(0.4)
+        
+        -- Load script Premium
+        local success, errorMessage = pcall(function()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/fyybisnis4-gif/walkss/refs/heads/main/DAUN%20TINGGI.lua'))()
+        end)
+        
+        if not success then
+            warn("Gagal memuat script: " .. tostring(errorMessage))
+        end
+    end)
+end)
+
+-- Fungsi untuk tombol Close
+CloseButton.MouseButton1Click:Connect(function()
+    CloseGUI()
+end)
+
+-- Animasi saat GUI muncul
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+local OpenTween = game:GetService("TweenService"):Create(
+    MainFrame,
+    TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    {Size = UDim2.new(0, 300, 0, 150), Position = UDim2.new(0.35, 0, 0.3, 0)}
+)
+OpenTween:Play()
