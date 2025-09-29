@@ -2289,24 +2289,13 @@ CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
 end)
 
 
--- Anti AFK Toggle (Rayfield) masuk PremiumTab
-local VirtualUser = game:GetService("VirtualUser")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-local AntiAFKLoop = false
-
-CreateMenuToggle(PremiumTab, "Anti AFK", false, function(Value)
-    AntiAFKLoop = Value
-    if not Value then return end
-
-    task.spawn(function()
-        while AntiAFKLoop do
-            task.wait(60) -- tiap 60 detik
-            VirtualUser:CaptureController()
-            VirtualUser:ClickButton2(Vector2.new()) -- klik kanan kosong biar dianggap aktif
-        end
-    end)
+CreateMenuButton(toolsTab, "Run Anti AFK", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
+    Rayfield:Notify({
+        Title = "Anti AFK",
+        Content = "✅ Script Anti AFK berhasil dijalankan!",
+        Duration = 4
+    })
 end)
 
 --------Walk Yahayuk
