@@ -689,8 +689,7 @@ local CPDelays = {
     13,   -- CP1
     25,   -- CP2
     15,   -- CP3
-    30,   -- CP4
-    45,   -- CP5
+    40,   -- CP4
     53,   -- CP6
     3     -- Summit
 }
@@ -804,7 +803,7 @@ CreateMenuToggle(mountTab, "MT Yahayuk V1", false, function(Value)
                     print("Teleported to Summit")
                     
                     -- Delay untuk Summit
-                    local summitDelay = CPDelays[7] or 3
+                    local summitDelay = CPDelays[6] or 3
                     if summitDelay > 0 then
                         local startTime = os.clock()
                         while os.clock() - startTime < summitDelay and XYZLoop do
