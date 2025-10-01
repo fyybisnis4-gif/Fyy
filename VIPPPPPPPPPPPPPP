@@ -2262,7 +2262,7 @@ end)
 ------------- DAUN V2
 
 local RunDaunV2ButtonEnabled = true
-
+ 
 CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
     -- Lock button jika sudah dijalankan
     if not RunDaunV2ButtonEnabled then
@@ -2273,20 +2273,21 @@ CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
         })
         return
     end
-
+ 
     -- Jalankan script
     loadstring(game:HttpGet("https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/GUI%20DAUN.lua"))()
-
+ 
     -- Notif sukses
     Rayfield:Notify({
         Title = "Run Walk Daun",
         Content = "✅ Script berhasil dijalankan!",
         Duration = 4
     })
-
+ 
     -- Lock button supaya tidak bisa dijalankan lagi
     RunDaunV2ButtonEnabled = false
 end)
+
 
 
 CreateMenuButton(toolsTab, "Run Anti AFK", function()
