@@ -1159,111 +1159,175 @@ CreateMenuToggle(mountTab, "MT Ckptw", false, function(Value)
 end)
 
 -- === Tab: MT Arunika (Teleport buttons) ===
-local player = game.Players.LocalPlayer
-local TweenService = game:GetService("TweenService")
-local coreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local player = Players.LocalPlayer
 
-local mountTab = mountTab -- Pastikan ini didefinisikan oleh Rayfield sebelumnya
-local MTArunikaLoop = false
-
--- Setup Timer GUI
-local function setupTimerGui()
-    local existing = coreGui:FindFirstChild("CkptwTimerGui")
-    if existing then existing:Destroy() end
-
-    local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "CkptwTimerGui"
-    ScreenGui.Parent = coreGui
-
-    local TimerLabel = Instance.new("TextLabel")
-    TimerLabel.Parent = ScreenGui
-    TimerLabel.AnchorPoint = Vector2.new(0.5, 0)
-    TimerLabel.Size = UDim2.new(0, 240, 0, 60)
-    TimerLabel.Position = UDim2.new(0.5, 0, 0, 50)
-    TimerLabel.BackgroundTransparency = 1
-    TimerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    TimerLabel.Font = Enum.Font.SourceSansBold
-    TimerLabel.TextScaled = true
-    TimerLabel.Visible = false
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Parent = TimerLabel
-    stroke.Thickness = 2
-    stroke.Color = Color3.fromRGB(0, 0, 0)
-
-    return TimerLabel
+-- Utility: get character + parts
+local function getCharParts()
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+    local humanoid = char:WaitForChild("Humanoid")
+    return char, hrp, humanoid
 end
 
-local TimerLabel = setupTimerGui()
-
--- Countdown GUI
-local function showTimer(seconds, label)
-    TimerLabel.Visible = true
-    for i = seconds, 1, -1 do
-        if not MTArunikaLoop then break end
-        TimerLabel.Text = label .. "\nTunggu: " .. i .. " detik"
-        task.wait(1)
-    end
-    TimerLabel.Visible = false
+-- FireTouch helper
+local function fireTouch(part1, part2)
+    if not part1 or not part2 then return end
+    pcall(function()
+        firetouchinterest(part1, part2, 0)
+        task.wait(0.15)
+        firetouchinterest(part1, part2, 1)
+    end)
 end
 
--- Wait for HRP
-local function waitForHRP(char, timeout)
-    local t = 0
-    repeat
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        if hrp then return hrp end
-        task.wait(0.1)
-        t += 0.1
-    until t >= timeout
-    return nil
-end
-
--- Tween-based teleport
-local function safeTeleport(hrp, position)
-    local tweenInfo = TweenInfo.new(0.15, Enum.EasingStyle.Linear)
-    local goal = {CFrame = CFrame.new(position)}
-    local tween = TweenService:Create(hrp, tweenInfo, goal)
-    tween:Play()
-    tween.Completed:Wait()
-end
-
--- List of CPs (tanpa pos ngumpet)
-local cpSequence = {
-    {name = "CP 1", position = Vector3.new(136, 142, -175)},
-    {name = "CP 2", position = Vector3.new(326, 90, -434)},
-    {name = "CP 3", position = Vector3.new(477, 170, -940)},
-    {name = "CP 4", position = Vector3.new(930, 133, -626)},
-    {name = "CP 5", position = Vector3.new(924, 101, 279)},
-    {name = "Summit", position = Vector3.new(257, 325, 708)},
-}
-
--- Toggle Auto CP
-CreateMenuToggle(mountTab, "MT Arunika", false, function(Value)
-    MTArunikaLoop = Value
-    if not Value then return end
-
-    task.spawn(function()
-        while MTArunikaLoop do
-            local character = player.Character or player.CharacterAdded:Wait()
-            local hrp = waitForHRP(character, 5)
-            if not hrp then break end
-
-            for _, cp in ipairs(cpSequence) do
-                safeTeleport(hrp, cp.position)
-                showTimer(2, cp.name)
-                if not MTArunikaLoop then break end
-            end
-
-            -- Respawn (reset character)
-            if MTArunikaLoop then
-                player.Character:BreakJoints()
-                repeat task.wait(0.1) until player.Character ~= character and player.Character:FindFirstChild("HumanoidRootPart")
-                task.wait(2)
+-- Noclip system
+local noclipConn
+local function enableNoclip(char)
+    if noclipConn then noclipConn:Disconnect() end
+    noclipConn = RunService.Stepped:Connect(function()
+        for _, part in pairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
             end
         end
     end)
+end
+
+-- MoveTo helper
+local function moveForward(hrp, humanoid, studs)
+    local targetPos = hrp.Position + (hrp.CFrame.LookVector * studs)
+    humanoid:MoveTo(targetPos)
+    humanoid.MoveToFinished:Wait()
+end
+
+-- Ambil SummitTrigger ke-n
+local function getSummitTrigger(index)
+    local found = {}
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj.Name == "SummitTrigger" then
+            table.insert(found, obj)
+        end
+    end
+    return found[index]
+end
+
+-- Ambil checkpoint
+local function getCheckpoint(num)
+    local cp
+    repeat
+        local cps = workspace:FindFirstChild("Checkpoints")
+        if cps then
+            cp = cps:FindFirstChild("Checkpoint"..num)
+        end
+        if not cp then
+            warn("Checkpoint"..num.." belum ada, tunggu refresh...")
+            task.wait(1)
+        end
+    until cp
+    return cp
+end
+
+------------------------
+-- Toggle Loop System --
+------------------------
+
+local AutoFarmEnabled = false
+
+CreateMenuToggle(mountTab, "MT Arunika", false, function(Value)
+    AutoFarmEnabled = Value
+
+    if AutoFarmEnabled then
+        task.spawn(function()
+            while AutoFarmEnabled do
+                -- START Flow
+                local char, hrp, humanoid = getCharParts()
+                enableNoclip(char)
+
+                -- Maju dulu 10 studs
+                moveForward(hrp, humanoid, 15)
+                task.wait(0.5)
+
+                -- Teleport awal
+                hrp.CFrame = CFrame.new(-376, 23, -246)
+                task.wait(1)
+
+                -- Tambah maju lagi
+                moveForward(hrp, humanoid, 15)
+                task.wait(3)
+
+                -- Checkpoint 1-5
+                for i = 1, 5 do
+                    if not AutoFarmEnabled then break end
+                    local checkpoint = getCheckpoint(i)
+
+                    fireTouch(hrp, checkpoint)
+                    task.wait(2)
+
+                    -- Respawn pakai BreakJoints
+                    if char and char.Parent then
+                        char:BreakJoints()
+                    end
+                    char = player.CharacterAdded:Wait()
+                    hrp = char:WaitForChild("HumanoidRootPart")
+                    humanoid = char:WaitForChild("Humanoid")
+
+                    enableNoclip(char)
+                    task.wait(0.5)
+
+                    moveForward(hrp, humanoid, 25)
+                    task.wait(2)
+                end
+
+                if not AutoFarmEnabled then break end
+
+                -- Timer tunggu di cp5
+                local waitTime = 180
+                local screenGui = Instance.new("ScreenGui")
+                screenGui.Name = "TimerGui"
+                screenGui.ResetOnSpawn = false
+                screenGui.Parent = player:WaitForChild("PlayerGui")
+
+                local timerLabel = Instance.new("TextLabel")
+                timerLabel.Size = UDim2.new(0, 250, 0, 50)
+                timerLabel.Position = UDim2.new(0.5, -125, 0.05, 0)
+                timerLabel.BackgroundTransparency = 1
+                timerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+                timerLabel.Font = Enum.Font.SourceSansBold
+                timerLabel.TextSize = 28
+                timerLabel.Text = "⏱️ Tunggu: 180s"
+                timerLabel.Parent = screenGui
+
+                for t = waitTime, 1, -1 do
+                    if not AutoFarmEnabled then break end
+                    timerLabel.Text = "⏱️ Tunggu: " .. t .. "s"
+                    task.wait(1)
+                end
+
+                screenGui:Destroy()
+
+                if not AutoFarmEnabled then break end
+
+                -- Fire SummitTrigger
+                local summit = getSummitTrigger(2)
+                if summit then
+                    fireTouch(hrp, summit)
+                else
+                    warn("Summit tidak ditemukan!")
+                end
+
+                -- Respawn terakhir
+                if char and char.Parent then
+                    char:BreakJoints()
+                end
+
+                -- tunggu dikit sebelum loop lagi
+                task.wait(4)
+            end
+        end)
+    end
 end)
+
 
 ------------
 
@@ -2540,5 +2604,182 @@ CreateMenuButton(arunikaTab, "Auto Walk YNTKTS", function()
     -- Lock button supaya tidak bisa dijalankan lagi
     RunYNTKTSButtonEnabled = false
 end)
+
+--[[ 
+LocalScript: Rainbow Custom Name + Toggle (Rayfield)
+Taruh di StarterPlayerScripts
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- CONFIG
+local CONFIG = {
+    textSize = 20,
+    textStrokeTransparency = 0.6,
+    yOffset = 2,
+}
+
+-- STATE
+local currentName = "FyyOnTOP#1 👑"
+local customGui -- BillboardGui custom
+local conns = {}
+local hiddenGuis = {} -- simpan GUI bawaan yg di-disable
+local enabled = false
+
+-- Rainbow generator
+local function rainbowColor(t)
+    local r = math.sin(t*2) * 127 + 128
+    local g = math.sin(t*2 + 2) * 127 + 128
+    local b = math.sin(t*2 + 4) * 127 + 128
+    return Color3.fromRGB(r,g,b)
+end
+
+-- Disable gui bawaan sementara
+local function hideGuiIfTarget(gui)
+    if (gui:IsA("BillboardGui") or gui:IsA("SurfaceGui")) and gui.Name ~= "FyyOnTOP#1" then
+        if gui.Enabled ~= false then
+            hiddenGuis[gui] = true
+            gui.Enabled = false
+        end
+    end
+end
+
+-- Restore semua gui yg sempat disembunyiin
+local function restoreHiddenGuis()
+    for gui in pairs(hiddenGuis) do
+        if gui and gui.Parent then
+            gui.Enabled = true
+        end
+    end
+    hiddenGuis = {}
+end
+
+-- Buat custom name rainbow
+local function createNameTag(character)
+    local head = character:FindFirstChild("Head") or character:FindFirstChild("UpperTorso")
+    if not head then return end
+
+    if customGui then
+        customGui:Destroy()
+        customGui = nil
+    end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "FyyOnTOP#1"
+    billboard.Adornee = head
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, CONFIG.yOffset, 0)
+    billboard.Parent = head
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Text = currentName
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = CONFIG.textSize
+    label.TextStrokeTransparency = CONFIG.textStrokeTransparency
+    label.TextColor3 = Color3.fromRGB(255,0,0)
+    label.TextScaled = false
+    label.Parent = billboard
+
+    local t = 0
+    local conn = RunService.RenderStepped:Connect(function(dt)
+        if not billboard.Parent then
+            conn:Disconnect()
+            return
+        end
+        t += dt
+        label.TextColor3 = rainbowColor(t)
+        label.Text = currentName
+    end)
+
+    table.insert(conns, conn)
+    customGui = billboard
+end
+
+-- Hide default humanoid name & overhead map
+local function hideDefaultNameTag(character)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        pcall(function()
+            humanoid.NameDisplayDistance = 0
+            humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        end)
+    end
+
+    local head = character:FindFirstChild("Head")
+    if head then
+        for _, gui in ipairs(head:GetChildren()) do
+            hideGuiIfTarget(gui)
+        end
+        local conn = head.ChildAdded:Connect(function(child)
+            task.defer(function()
+                hideGuiIfTarget(child)
+            end)
+        end)
+        table.insert(conns, conn)
+    end
+end
+
+-- Cleanup
+local function disconnectAll()
+    for _, c in ipairs(conns) do
+        if c.Disconnect then c:Disconnect() end
+    end
+    conns = {}
+end
+
+-- Toggle handler
+local function setEnabled(state)
+    enabled = state
+    if state then
+        if LocalPlayer.Character then
+            hideDefaultNameTag(LocalPlayer.Character)
+            createNameTag(LocalPlayer.Character)
+        end
+    else
+        disconnectAll()
+        if customGui then
+            customGui:Destroy()
+            customGui = nil
+        end
+        restoreHiddenGuis() -- <== FIX: balikin semua overhead map
+    end
+end
+
+-- Allow change name runtime
+_G.SetMyVisualName = function(newName)
+    currentName = tostring(newName)
+    if enabled and LocalPlayer.Character then
+        createNameTag(LocalPlayer.Character)
+    end
+end
+
+-- Apply kalau respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    if enabled then
+        char:WaitForChild("HumanoidRootPart", 5)
+        task.delay(1, function()
+            if enabled then
+                hideDefaultNameTag(char)
+                createNameTag(char)
+            end
+        end)
+    end
+end)
+
+-- Start OFF
+setEnabled(false)
+
+-- Rayfield toggle
+CreateMenuToggle(miscTab, "Hide Name", false, function(Value)
+    setEnabled(Value)
+end)
+
+print("Custom Name Success Loaded")
+
 
 Rayfield:LoadConfiguration()
