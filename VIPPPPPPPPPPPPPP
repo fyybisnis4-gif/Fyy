@@ -1564,41 +1564,209 @@ end)
 CreateMenuToggle(toolsTab, "SavePos And BackPos", false, function(Value)
     if Value then
         if posGUI then posGUI:Destroy(); posGUI = nil end
+        
         posGUI = Instance.new("ScreenGui")
         posGUI.Name = "PosGui"
         posGUI.ResetOnSpawn = false
         posGUI.Parent = player:WaitForChild("PlayerGui")
+        
+        -- Main Frame dengan corner radius
         local frame = Instance.new("Frame")
-        frame.Size = UDim2.new(0,220,0,100)
-        frame.Position = UDim2.new(0,50,0,50)
-        frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
+        frame.Size = UDim2.new(0, 250, 0, 150)
+        frame.Position = UDim2.new(0, 50, 0, 50)
+        frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         frame.BorderSizePixel = 0
         frame.Parent = posGUI
+        
+        -- Corner Radius
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = frame
+        
+        -- Drop Shadow
+        local shadow = Instance.new("ImageLabel")
+        shadow.Name = "Shadow"
+        shadow.BackgroundTransparency = 1
+        shadow.Size = UDim2.new(1, 10, 1, 10)
+        shadow.Position = UDim2.new(0, -5, 0, -5)
+        shadow.Image = "rbxassetid://1316045217"
+        shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+        shadow.ImageTransparency = 0.8
+        shadow.ScaleType = Enum.ScaleType.Slice
+        shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+        shadow.Parent = frame
+        shadow.ZIndex = 0
+        
+        -- Title Bar (untuk drag)
+        local titleBar = Instance.new("Frame")
+        titleBar.Size = UDim2.new(1, 0, 0, 30)
+        titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+        titleBar.BorderSizePixel = 0
+        titleBar.Parent = frame
+        
+        local titleCorner = Instance.new("UICorner")
+        titleCorner.CornerRadius = UDim.new(0, 8)
+        titleCorner.Parent = titleBar
+        
+        -- Title Text
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, -10, 1, 0)
+        title.Position = UDim2.new(0, 10, 0, 0)
+        title.BackgroundTransparency = 1
+        title.Text = "Position Saver"
+        title.TextColor3 = Color3.new(1, 1, 1)
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Font = Enum.Font.GothamSemibold
+        title.TextSize = 14
+        title.Parent = titleBar
+        
+        -- Close Button
+        local closeBtn = Instance.new("TextButton")
+        closeBtn.Size = UDim2.new(0, 20, 0, 20)
+        closeBtn.Position = UDim2.new(1, -25, 0, 5)
+        closeBtn.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+        closeBtn.Text = "X"
+        closeBtn.TextColor3 = Color3.new(1, 1, 1)
+        closeBtn.Font = Enum.Font.GothamBold
+        closeBtn.TextSize = 12
+        closeBtn.Parent = titleBar
+        
+        local closeCorner = Instance.new("UICorner")
+        closeCorner.CornerRadius = UDim.new(0, 4)
+        closeCorner.Parent = closeBtn
+        
+        -- Content Area
+        local content = Instance.new("Frame")
+        content.Size = UDim2.new(1, 0, 1, -30)
+        content.Position = UDim2.new(0, 0, 0, 30)
+        content.BackgroundTransparency = 1
+        content.Parent = frame
+        
+        -- Function untuk membuat tombol yang lebih bagus
         local function createButton(name, callback, yOffset)
+            local btnFrame = Instance.new("Frame")
+            btnFrame.Size = UDim2.new(0, 230, 0, 40)
+            btnFrame.Position = UDim2.new(0, 10, 0, yOffset)
+            btnFrame.BackgroundTransparency = 1
+            btnFrame.Parent = content
+            
             local btn = Instance.new("TextButton")
-            btn.Size = UDim2.new(0,200,0,30)
-            btn.Position = UDim2.new(0,10,0,yOffset)
-            btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-            btn.TextColor3 = Color3.new(1,1,1)
+            btn.Size = UDim2.new(1, 0, 1, 0)
+            btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+            btn.TextColor3 = Color3.new(1, 1, 1)
             btn.Text = name
-            btn.Parent = frame
+            btn.Font = Enum.Font.Gotham
+            btn.TextSize = 12
+            btn.Parent = btnFrame
+            
+            local btnCorner = Instance.new("UICorner")
+            btnCorner.CornerRadius = UDim.new(0, 6)
+            btnCorner.Parent = btn
+            
+            -- Hover effect
+            btn.MouseEnter:Connect(function()
+                game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 80)}):Play()
+            end)
+            
+            btn.MouseLeave:Connect(function()
+                game:GetService("TweenService"):Create(btn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(60, 60, 60)}):Play()
+            end)
+            
             btn.MouseButton1Click:Connect(callback)
+            
+            return btn
         end
-        createButton("Save Pos", function()
+        
+        -- Status indicator
+        local statusLabel = Instance.new("TextLabel")
+        statusLabel.Size = UDim2.new(1, -20, 0, 20)
+        statusLabel.Position = UDim2.new(0, 10, 0, 100)
+        statusLabel.BackgroundTransparency = 1
+        statusLabel.Text = "Status: No position saved"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        statusLabel.TextSize = 11
+        statusLabel.Font = Enum.Font.Gotham
+        statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+        statusLabel.Parent = content
+        
+        -- Update status function
+        local function updateStatus()
+            if savedPosition then
+                statusLabel.Text = "Status: Position saved ✓"
+                statusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+            else
+                statusLabel.Text = "Status: No position saved"
+                statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+            end
+        end
+        
+        -- Create buttons
+        createButton("💾 Save Position", function()
             if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 savedPosition = player.Character.HumanoidRootPart.Position
-                Rayfield:Notify({Title="SavePos", Content="Posisi tersimpan", Duration = 2})
+                Rayfield:Notify({Title="SavePos", Content="Posisi berhasil disimpan!", Duration = 2})
+                updateStatus()
+            else
+                Rayfield:Notify({Title="SavePos", Content="Karakter tidak ditemukan", Duration = 2})
             end
         end, 10)
-        createButton("Go to Pos", function()
+        
+        createButton("🚀 Teleport to Position", function()
             if savedPosition and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                 player.Character.HumanoidRootPart.CFrame = CFrame.new(savedPosition)
+                Rayfield:Notify({Title="SavePos", Content="Berhasil teleport ke posisi!", Duration = 2})
             else
-                Rayfield:Notify({Title="SavePos", Content="Posisi belum disimpan", Duration = 2})
+                Rayfield:Notify({Title="SavePos", Content="Posisi belum disimpan atau karakter tidak ditemukan", Duration = 2})
             end
-        end, 50)
+        end, 55)
+        
+        -- Initialize status
+        updateStatus()
+        
+        -- Drag functionality
+        local dragging = false
+        local dragInput, dragStart, startPos
+        
+        titleBar.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                dragging = true
+                dragStart = input.Position
+                startPos = frame.Position
+                
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                    end
+                end)
+            end
+        end)
+        
+        titleBar.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement then
+                dragInput = input
+            end
+        end)
+        
+        game:GetService("UserInputService").InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                local delta = input.Position - dragStart
+                frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+        
+        -- Close button functionality
+        closeBtn.MouseButton1Click:Connect(function()
+            if posGUI then 
+                posGUI:Destroy() 
+                posGUI = nil 
+            end
+        end)
+        
     else
-        if posGUI then posGUI:Destroy(); posGUI = nil end
+        if posGUI then 
+            posGUI:Destroy() 
+            posGUI = nil 
+        end
     end
 end)
 
@@ -2781,5 +2949,67 @@ end)
 
 print("Custom Name Success Loaded")
 
+--// Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+--// Vars
+local lp = Players.LocalPlayer
+local heartbeat = RunService.Heartbeat
+local rstepped = RunService.RenderStepped
+local zeroVec = Vector3.zero
+
+-- state
+local noFallConnection = nil
+local enabled = false
+
+-- fungsi aktifkan
+local function enableNoFall(chr)
+    local root = chr:WaitForChild("HumanoidRootPart", 5)
+    if not root then return end
+
+    noFallConnection = heartbeat:Connect(function()
+        if not root.Parent then
+            if noFallConnection then
+                noFallConnection:Disconnect()
+                noFallConnection = nil
+            end
+            return
+        end
+
+        local oldvel = root.AssemblyLinearVelocity
+        root.AssemblyLinearVelocity = zeroVec
+        rstepped:Wait()
+        root.AssemblyLinearVelocity = oldvel
+    end)
+end
+
+-- fungsi matikan
+local function disableNoFall()
+    if noFallConnection then
+        noFallConnection:Disconnect()
+        noFallConnection = nil
+    end
+end
+
+-- toggle menu
+CreateMenuToggle(toolsTab, "No Fall Damage", false, function(Value)
+    enabled = Value
+
+    if Value then
+        -- aktifkan sekarang
+        if lp.Character then
+            enableNoFall(lp.Character)
+        end
+        -- agar tetap aktif jika respawn
+        lp.CharacterAdded:Connect(function(char)
+            if enabled then
+                enableNoFall(char)
+            end
+        end)
+    else
+        disableNoFall()
+    end
+end)
 
 Rayfield:LoadConfiguration()
