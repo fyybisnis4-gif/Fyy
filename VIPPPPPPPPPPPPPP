@@ -450,10 +450,11 @@ end)
 
 -- FullBright handler: toggle and slider will control these variables below in UI section
 
--- === UI Creation: Tabs + All menu callbacks (full logic) ===
+local miscTab = Window:CreateTab("Player", "user-round-cog")
+miscTab:CreateSection("Movement & Misc")
 
 -- Tab: Auto Summit
-local mountTab = Window:CreateTab("Auto Summit🔥", 4483362458)
+local mountTab = Window:CreateTab("Auto Summit", "mountain")
 mountTab:CreateSection("Auto Summit")
 
 -- Expedition Antartika toggle (uses RunSummit)
@@ -1332,7 +1333,7 @@ end)
 ------------
 
 -- Bikin Tab Baru
-local arunikaTab = Window:CreateTab("Auto Walk Mount", 4483362458)
+local arunikaTab = Window:CreateTab("Auto Walk Mount", "bug-play")
 
 -- Optional: Section di dalam Tab
 arunikaTab:CreateSection("Auto Script")
@@ -1366,8 +1367,6 @@ end)
 
 
 -- === Tab: Misc ===
-local miscTab = Window:CreateTab("Misc", 4483362458)
-miscTab:CreateSection("Movement & Misc")
 
 -- WalkSpeed
 local previousWalk = 16
@@ -1460,7 +1459,12 @@ CreateMenuToggle(miscTab, "ESP Players (bug)", false, function(Value)
     end
 end)
 
-local FreezeToggle = miscTab:CreateToggle({
+
+-- === Tab: Tools ===
+local toolsTab = Window:CreateTab("Tools", "cog")
+toolsTab:CreateSection("Utility Tools")
+
+local FreezeToggle = toolsTab:CreateToggle({
     Name = "Freeze Object (Time Stop)",
     CurrentValue = false,
     Flag = "freeze_object_flag", -- <--- ini flag untuk save config
@@ -1477,7 +1481,7 @@ local FreezeToggle = miscTab:CreateToggle({
     end
 })
 
-local FreezeSlider = miscTab:CreateSlider({
+local FreezeSlider = toolsTab:CreateSlider({
     Name = "Freeze Radius",
     Range = {0,500},
     Increment = 10,
@@ -1487,40 +1491,6 @@ local FreezeSlider = miscTab:CreateSlider({
         FreezeDistance = Value
     end
 })
-
-
--- === Tab: Tools ===
-local toolsTab = Window:CreateTab("Tools", 4483362458)
-toolsTab:CreateSection("Utility Tools")
-
-CreateMenuButton(toolsTab, "Teleport Tool", function()
-    local backpack = player:WaitForChild("Backpack")
-    for _, v in ipairs(backpack:GetChildren()) do if v:IsA("Tool") and v.Name == "Click Teleport" then v:Destroy() end end
-    if player.Character then for _, v in ipairs(player.Character:GetChildren()) do if v:IsA("Tool") and v.Name == "Click Teleport" then v:Destroy() end end end
-    local tool = Instance.new("Tool")
-    tool.Name = "Click Teleport"
-    tool.RequiresHandle = false
-    tool.CanBeDropped = false
-    tool.Parent = backpack
-    tool.Equipped:Connect(function(mouse)
-        local m = mouse or player:GetMouse()
-        local activatedConn
-        activatedConn = tool.Activated:Connect(function()
-            TeleportTo(m.Hit.p + Vector3.new(0,3,0))
-        end)
-        tool.Unequipped:Connect(function()
-            if activatedConn then activatedConn:Disconnect() end
-        end)
-    end)
-end)
-
-CreateMenuButton(toolsTab, "Respawn", function()
-    pcall(function() if player.Character then player.Character:BreakJoints() end end)
-end)
-
-CreateMenuButton(toolsTab, "Rejoin", function()
-    TeleportService:Teleport(game.PlaceId, player)
-end)
 
 CreateMenuToggle(toolsTab, "Full Bright Loop", false, function(Value)
     FullBrightEnabled = Value
@@ -1561,6 +1531,371 @@ CreateMenuSlider(toolsTab, "Adjust Brightness", {0,10}, 0.2, currentBrightness, 
     if FullBrightEnabled then Lighting.Brightness = currentBrightness end
 end)
 
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+
+-- CONFIG
+local CONFIG = {
+    textSize = 20,
+    textStrokeTransparency = 0.6,
+    yOffset = 2,
+}
+
+-- STATE
+local currentName = "FyyOnTOP#1 👑"
+local customGui -- BillboardGui custom
+local conns = {}
+local hiddenGuis = {} -- simpan GUI bawaan yg di-disable
+local enabled = false
+
+-- Rainbow generator
+local function rainbowColor(t)
+    local r = math.sin(t*2) * 127 + 128
+    local g = math.sin(t*2 + 2) * 127 + 128
+    local b = math.sin(t*2 + 4) * 127 + 128
+    return Color3.fromRGB(r,g,b)
+end
+
+-- Disable gui bawaan sementara
+local function hideGuiIfTarget(gui)
+    if (gui:IsA("BillboardGui") or gui:IsA("SurfaceGui")) and gui.Name ~= "FyyOnTOP#1" then
+        if gui.Enabled ~= false then
+            hiddenGuis[gui] = true
+            gui.Enabled = false
+        end
+    end
+end
+
+-- Restore semua gui yg sempat disembunyiin
+local function restoreHiddenGuis()
+    for gui in pairs(hiddenGuis) do
+        if gui and gui.Parent then
+            gui.Enabled = true
+        end
+    end
+    hiddenGuis = {}
+end
+
+-- Buat custom name rainbow
+local function createNameTag(character)
+    local head = character:FindFirstChild("Head") or character:FindFirstChild("UpperTorso")
+    if not head then return end
+
+    if customGui then
+        customGui:Destroy()
+        customGui = nil
+    end
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "FyyOnTOP#1"
+    billboard.Adornee = head
+    billboard.AlwaysOnTop = true
+    billboard.Size = UDim2.new(0, 200, 0, 50)
+    billboard.StudsOffset = Vector3.new(0, CONFIG.yOffset, 0)
+    billboard.Parent = head
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Text = currentName
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = CONFIG.textSize
+    label.TextStrokeTransparency = CONFIG.textStrokeTransparency
+    label.TextColor3 = Color3.fromRGB(255,0,0)
+    label.TextScaled = false
+    label.Parent = billboard
+
+    local t = 0
+    local conn = RunService.RenderStepped:Connect(function(dt)
+        if not billboard.Parent then
+            conn:Disconnect()
+            return
+        end
+        t += dt
+        label.TextColor3 = rainbowColor(t)
+        label.Text = currentName
+    end)
+
+    table.insert(conns, conn)
+    customGui = billboard
+end
+
+-- Hide default humanoid name & overhead map
+local function hideDefaultNameTag(character)
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        pcall(function()
+            humanoid.NameDisplayDistance = 0
+            humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
+        end)
+    end
+
+    local head = character:FindFirstChild("Head")
+    if head then
+        for _, gui in ipairs(head:GetChildren()) do
+            hideGuiIfTarget(gui)
+        end
+        local conn = head.ChildAdded:Connect(function(child)
+            task.defer(function()
+                hideGuiIfTarget(child)
+            end)
+        end)
+        table.insert(conns, conn)
+    end
+end
+
+-- Cleanup
+local function disconnectAll()
+    for _, c in ipairs(conns) do
+        if c.Disconnect then c:Disconnect() end
+    end
+    conns = {}
+end
+
+-- Toggle handler
+local function setEnabled(state)
+    enabled = state
+    if state then
+        if LocalPlayer.Character then
+            hideDefaultNameTag(LocalPlayer.Character)
+            createNameTag(LocalPlayer.Character)
+        end
+    else
+        disconnectAll()
+        if customGui then
+            customGui:Destroy()
+            customGui = nil
+        end
+        restoreHiddenGuis() -- <== FIX: balikin semua overhead map
+    end
+end
+
+-- Allow change name runtime
+_G.SetMyVisualName = function(newName)
+    currentName = tostring(newName)
+    if enabled and LocalPlayer.Character then
+        createNameTag(LocalPlayer.Character)
+    end
+end
+
+-- Apply kalau respawn
+LocalPlayer.CharacterAdded:Connect(function(char)
+    if enabled then
+        char:WaitForChild("HumanoidRootPart", 5)
+        task.delay(1, function()
+            if enabled then
+                hideDefaultNameTag(char)
+                createNameTag(char)
+            end
+        end)
+    end
+end)
+
+-- Start OFF
+setEnabled(false)
+
+-- Rayfield toggle
+CreateMenuToggle(toolsTab, "Hide Name", false, function(Value)
+    setEnabled(Value)
+end)
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- Config
+local config = {
+    radius = 10000,
+    height = 10000,
+    rotationSpeed = 10000,
+    attractionStrength = 10000,
+}
+
+-- Tornado toggle
+local ringPartsEnabled = false
+
+-- Tracking parts
+local parts = {}
+
+local function RetainPart(Part)
+    if Part:IsA("BasePart") and not Part.Anchored and Part:IsDescendantOf(workspace) then
+        if Part.Parent == LocalPlayer.Character or Part:IsDescendantOf(LocalPlayer.Character) then
+            return false
+        end
+        Part.CustomPhysicalProperties = PhysicalProperties.new(0.0001, 0, 0, 0, 0)
+        Part.CanCollide = false
+        return true
+    end
+    return false
+end
+
+local function addPart(part)
+    if RetainPart(part) then
+        if not table.find(parts, part) then
+            table.insert(parts, part)
+        end
+    end
+end
+
+local function removePart(part)
+    local index = table.find(parts, part)
+    if index then
+        table.remove(parts, index)
+    end
+end
+
+-- Init parts
+for _, part in pairs(workspace:GetDescendants()) do
+    addPart(part)
+end
+workspace.DescendantAdded:Connect(addPart)
+workspace.DescendantRemoving:Connect(removePart)
+
+-- Tornado loop
+RunService.Heartbeat:Connect(function()
+    if not ringPartsEnabled then return end
+    
+    local humanoidRootPart = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local tornadoCenter = humanoidRootPart.Position
+        for _, part in pairs(parts) do
+            if part.Parent and not part.Anchored then
+                local pos = part.Position
+                local distance = (Vector3.new(pos.X, tornadoCenter.Y, pos.Z) - tornadoCenter).Magnitude
+                local angle = math.atan2(pos.Z - tornadoCenter.Z, pos.X - tornadoCenter.X)
+                local newAngle = angle + math.rad(config.rotationSpeed)
+                local targetPos = Vector3.new(
+                    tornadoCenter.X + math.cos(newAngle) * math.min(config.radius, distance),
+                    tornadoCenter.Y + (config.height * (math.abs(math.sin((pos.Y - tornadoCenter.Y) / config.height)))),
+                    tornadoCenter.Z + math.sin(newAngle) * math.min(config.radius, distance)
+                )
+                local directionToTarget = (targetPos - part.Position).Unit
+                part.Velocity = directionToTarget * config.attractionStrength
+            end
+        end
+    end
+end)
+
+CreateMenuToggle(toolsTab, "TERBANGKAN PART", false, function(Value)
+    ringPartsEnabled = Value
+
+    if Value then
+        Rayfield:Notify({
+            Title = "Orbit Part Activated",
+            Content = "Efek sudah dinyalakan!",
+            Duration = 5,
+            Image = 6031280890 -- ganti ID kalau mau custom icon
+        })
+    else
+        Rayfield:Notify({
+            Title = "Orbit Part Disabled",
+            Content = "Efek dimatikan.",
+            Duration = 5,
+            Image = 6031280890
+        })
+    end
+end)
+
+--// Variabel penyimpanan kondisi asli biar bisa dibalikin
+local originalSettings = {
+    Ambient = game.Lighting.Ambient,
+    Brightness = game.Lighting.Brightness,
+    GlobalShadows = game.Lighting.GlobalShadows,
+    FogEnd = game.Lighting.FogEnd,
+}
+
+local function applyLowGraphics()
+    local g = game
+    local w = g.Workspace
+    local l = g.Lighting
+    local t = w.Terrain
+
+    -- Ambient & lighting
+    l.Ambient = Color3.new(0, 1, 1)
+    l.GlobalShadows = false
+    l.FogEnd = 9e9
+    l.Brightness = 0
+
+    -- Air
+    t.WaterWaveSize = 0
+    t.WaterWaveSpeed = 0
+    t.WaterReflectance = 0
+    t.WaterTransparency = 0
+
+    -- Render quality
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
+    -- Parts, decals, particle
+    for _, v in pairs(g:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.Plastic
+            v.Reflectance = 0
+        elseif v:IsA("Decal") then
+            v.Transparency = 1
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = false
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        end
+    end
+
+    -- Post processing
+    for _, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = false
+        end
+    end
+end
+
+local function restoreGraphics()
+    local g = game
+    local l = g.Lighting
+
+    -- Balikin lighting ke semula
+    l.Ambient = originalSettings.Ambient
+    l.Brightness = originalSettings.Brightness
+    l.GlobalShadows = originalSettings.GlobalShadows
+    l.FogEnd = originalSettings.FogEnd
+
+    -- Balikin kualitas render ke otomatis
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
+
+    -- Balikin decal, particle, dll
+    for _, v in pairs(g:GetDescendants()) do
+        if v:IsA("Decal") then
+            v.Transparency = 0
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Enabled = true
+        end
+    end
+
+    -- Balikin efek post-processing
+    for _, e in pairs(l:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = true
+        end
+    end
+end
+-- Toggle Fling Player khusus premium
+CreateMenuToggle(toolsTab, "Fling Player", false, function(Value)
+    if Value then
+        Rayfield:Notify({
+            Title = "Fling Player By Fyy",
+            Content = "Mengaktifkan Fling Player...",
+            Duration = 3
+        })
+
+        -- Eksekusi fling script
+        loadstring(game:HttpGet("https://pastebin.com/raw/gyBjtJL6"))()
+    end
+end)
+--
 CreateMenuToggle(toolsTab, "SavePos And BackPos", false, function(Value)
     if Value then
         if posGUI then posGUI:Destroy(); posGUI = nil end
@@ -1770,87 +2105,6 @@ CreateMenuToggle(toolsTab, "SavePos And BackPos", false, function(Value)
     end
 end)
 
---// Variabel penyimpanan kondisi asli biar bisa dibalikin
-local originalSettings = {
-    Ambient = game.Lighting.Ambient,
-    Brightness = game.Lighting.Brightness,
-    GlobalShadows = game.Lighting.GlobalShadows,
-    FogEnd = game.Lighting.FogEnd,
-}
-
-local function applyLowGraphics()
-    local g = game
-    local w = g.Workspace
-    local l = g.Lighting
-    local t = w.Terrain
-
-    -- Ambient & lighting
-    l.Ambient = Color3.new(0, 1, 1)
-    l.GlobalShadows = false
-    l.FogEnd = 9e9
-    l.Brightness = 0
-
-    -- Air
-    t.WaterWaveSize = 0
-    t.WaterWaveSpeed = 0
-    t.WaterReflectance = 0
-    t.WaterTransparency = 0
-
-    -- Render quality
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-
-    -- Parts, decals, particle
-    for _, v in pairs(g:GetDescendants()) do
-        if v:IsA("BasePart") then
-            v.Material = Enum.Material.Plastic
-            v.Reflectance = 0
-        elseif v:IsA("Decal") then
-            v.Transparency = 1
-        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-            v.Enabled = false
-        elseif v:IsA("Explosion") then
-            v.BlastPressure = 1
-            v.BlastRadius = 1
-        end
-    end
-
-    -- Post processing
-    for _, e in pairs(l:GetChildren()) do
-        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
-            e.Enabled = false
-        end
-    end
-end
-
-local function restoreGraphics()
-    local g = game
-    local l = g.Lighting
-
-    -- Balikin lighting ke semula
-    l.Ambient = originalSettings.Ambient
-    l.Brightness = originalSettings.Brightness
-    l.GlobalShadows = originalSettings.GlobalShadows
-    l.FogEnd = originalSettings.FogEnd
-
-    -- Balikin kualitas render ke otomatis
-    settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-
-    -- Balikin decal, particle, dll
-    for _, v in pairs(g:GetDescendants()) do
-        if v:IsA("Decal") then
-            v.Transparency = 0
-        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
-            v.Enabled = true
-        end
-    end
-
-    -- Balikin efek post-processing
-    for _, e in pairs(l:GetChildren()) do
-        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
-            e.Enabled = true
-        end
-    end
-end
 
 --// Toggle Rayfield
 CreateMenuToggle(toolsTab, "Fix Lag", false, function(Value)
@@ -1860,7 +2114,117 @@ CreateMenuToggle(toolsTab, "Fix Lag", false, function(Value)
         restoreGraphics()
     end
 end)
+--
+--// Services
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
+--// Vars
+local lp = Players.LocalPlayer
+local heartbeat = RunService.Heartbeat
+local rstepped = RunService.RenderStepped
+local zeroVec = Vector3.zero
+
+-- state
+local noFallConnection = nil
+local enabled = false
+
+-- fungsi aktifkan
+local function enableNoFall(chr)
+    local root = chr:WaitForChild("HumanoidRootPart", 5)
+    if not root then return end
+
+    noFallConnection = heartbeat:Connect(function()
+        if not root.Parent then
+            if noFallConnection then
+                noFallConnection:Disconnect()
+                noFallConnection = nil
+            end
+            return
+        end
+
+        local oldvel = root.AssemblyLinearVelocity
+        root.AssemblyLinearVelocity = zeroVec
+        rstepped:Wait()
+        root.AssemblyLinearVelocity = oldvel
+    end)
+end
+
+-- fungsi matikan
+local function disableNoFall()
+    if noFallConnection then
+        noFallConnection:Disconnect()
+        noFallConnection = nil
+    end
+end
+-- toggle menu
+CreateMenuToggle(miscTab, "No Fall Damage", false, function(Value)
+    enabled = Value
+
+    if Value then
+        -- aktifkan sekarang
+        if lp.Character then
+            enableNoFall(lp.Character)
+        end
+        -- agar tetap aktif jika respawn
+        lp.CharacterAdded:Connect(function(char)
+            if enabled then
+                enableNoFall(char)
+            end
+        end)
+    else
+        disableNoFall()
+    end
+end)
+
+CreateMenuToggle(miscTab, "God Mode", false, function(Value)
+    GodMode = Value
+    if not Value then return end
+
+    task.spawn(function()
+        while GodMode do
+            local char = player.Character or player.CharacterAdded:Wait()
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+
+            if hum then
+                -- Cegah state Dead
+                pcall(function()
+                    hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                    hum:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+                end)
+
+                -- Reset Health
+                if hum.Health < hum.MaxHealth then
+                    hum.Health = hum.MaxHealth
+                end
+
+                -- Proteksi agar nggak di-kill pakai Destroy()
+                hum.Died:Connect(function()
+                    if GodMode then
+                        task.defer(function()
+                            if player.Character then
+                                -- Respawn cepat
+                                player.Character:BreakJoints()
+                            end
+                        end)
+                    end
+                end)
+            end
+
+            if hrp then
+                -- Kalau ada game yg nge-delete HRP, kita respawn
+                hrp:GetPropertyChangedSignal("Parent"):Connect(function()
+                    if GodMode and not hrp.Parent then
+                        player:LoadCharacter()
+                    end
+                end)
+            end
+
+            task.wait(0.3) -- cek cepat
+        end
+    end)
+end)
 
 CreateMenuButton(miscTab, "Fly", function()
     loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
@@ -1955,12 +2319,8 @@ CreateMenuToggle(mountTab, "MT Batu", false, function(Value)
 end)
 
 
--- Buat Tab Premium
-local PremiumTab = Window:CreateTab("Troll/Helper", 4483362458)
-PremiumTab:CreateSection("Jangan brutal kasian bg")
-
 -- Toggle Fling Player khusus premium
-CreateMenuToggle(PremiumTab, "Fling Player", false, function(Value)
+CreateMenuToggle(toolsTab, "Fling Player", false, function(Value)
     if Value then
         Rayfield:Notify({
             Title = "Fling Player By Fyy",
@@ -2064,14 +2424,6 @@ TeleportBtn.MouseButton1Click:Connect(function()
             Content = "Pilih player dulu dari list!",
             Duration = 2
         })
-    end
-end)
-
--- Toggle di PremiumTab → ON = GUI muncul, OFF = hilang
-CreateMenuToggle(PremiumTab, "Teleport to Player GUI", false, function(Value)
-    ScreenGui.Enabled = Value
-    if Value then
-        UpdateList()
     end
 end)
 
@@ -2203,58 +2555,6 @@ CreateMenuToggle(mountTab, "MT Yagataw", false, function(Value)
         end
     end)
 end)
-
--- === GOD MODE EXTRA STRONG ===
-CreateMenuToggle(PremiumTab, "God Mode", false, function(Value)
-    GodMode = Value
-    if not Value then return end
-
-    task.spawn(function()
-        while GodMode do
-            local char = player.Character or player.CharacterAdded:Wait()
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-
-            if hum then
-                -- Cegah state Dead
-                pcall(function()
-                    hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-                    hum:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-                end)
-
-                -- Reset Health
-                if hum.Health < hum.MaxHealth then
-                    hum.Health = hum.MaxHealth
-                end
-
-                -- Proteksi agar nggak di-kill pakai Destroy()
-                hum.Died:Connect(function()
-                    if GodMode then
-                        task.defer(function()
-                            if player.Character then
-                                -- Respawn cepat
-                                player.Character:BreakJoints()
-                            end
-                        end)
-                    end
-                end)
-            end
-
-            if hrp then
-                -- Kalau ada game yg nge-delete HRP, kita respawn
-                hrp:GetPropertyChangedSignal("Parent"):Connect(function()
-                    if GodMode and not hrp.Parent then
-                        player:LoadCharacter()
-                    end
-                end)
-            end
-
-            task.wait(0.3) -- cek cepat
-        end
-    end)
-end)
-
-
 
 -- === SETUP GUI TIMER UNTUK KONOHA ===
 
@@ -2520,17 +2820,6 @@ CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
     RunDaunV2ButtonEnabled = false
 end)
 
-
-
-CreateMenuButton(toolsTab, "Run Anti AFK", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
-    Rayfield:Notify({
-        Title = "Anti AFK",
-        Content = "✅ Script Anti AFK berhasil dijalankan!",
-        Duration = 4
-    })
-end)
-
 --------Walk Yahayuk
 
 local RunYahayukV2ButtonEnabled = true
@@ -2773,243 +3062,51 @@ CreateMenuButton(arunikaTab, "Auto Walk YNTKTS", function()
     RunYNTKTSButtonEnabled = false
 end)
 
---[[ 
-LocalScript: Rainbow Custom Name + Toggle (Rayfield)
-Taruh di StarterPlayerScripts
-]]
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
-
--- CONFIG
-local CONFIG = {
-    textSize = 20,
-    textStrokeTransparency = 0.6,
-    yOffset = 2,
-}
-
--- STATE
-local currentName = "FyyOnTOP#1 👑"
-local customGui -- BillboardGui custom
-local conns = {}
-local hiddenGuis = {} -- simpan GUI bawaan yg di-disable
-local enabled = false
-
--- Rainbow generator
-local function rainbowColor(t)
-    local r = math.sin(t*2) * 127 + 128
-    local g = math.sin(t*2 + 2) * 127 + 128
-    local b = math.sin(t*2 + 4) * 127 + 128
-    return Color3.fromRGB(r,g,b)
-end
-
--- Disable gui bawaan sementara
-local function hideGuiIfTarget(gui)
-    if (gui:IsA("BillboardGui") or gui:IsA("SurfaceGui")) and gui.Name ~= "FyyOnTOP#1" then
-        if gui.Enabled ~= false then
-            hiddenGuis[gui] = true
-            gui.Enabled = false
-        end
-    end
-end
-
--- Restore semua gui yg sempat disembunyiin
-local function restoreHiddenGuis()
-    for gui in pairs(hiddenGuis) do
-        if gui and gui.Parent then
-            gui.Enabled = true
-        end
-    end
-    hiddenGuis = {}
-end
-
--- Buat custom name rainbow
-local function createNameTag(character)
-    local head = character:FindFirstChild("Head") or character:FindFirstChild("UpperTorso")
-    if not head then return end
-
-    if customGui then
-        customGui:Destroy()
-        customGui = nil
-    end
-
-    local billboard = Instance.new("BillboardGui")
-    billboard.Name = "FyyOnTOP#1"
-    billboard.Adornee = head
-    billboard.AlwaysOnTop = true
-    billboard.Size = UDim2.new(0, 200, 0, 50)
-    billboard.StudsOffset = Vector3.new(0, CONFIG.yOffset, 0)
-    billboard.Parent = head
-
-    local label = Instance.new("TextLabel")
-    label.BackgroundTransparency = 1
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = currentName
-    label.Font = Enum.Font.SourceSansBold
-    label.TextSize = CONFIG.textSize
-    label.TextStrokeTransparency = CONFIG.textStrokeTransparency
-    label.TextColor3 = Color3.fromRGB(255,0,0)
-    label.TextScaled = false
-    label.Parent = billboard
-
-    local t = 0
-    local conn = RunService.RenderStepped:Connect(function(dt)
-        if not billboard.Parent then
-            conn:Disconnect()
-            return
-        end
-        t += dt
-        label.TextColor3 = rainbowColor(t)
-        label.Text = currentName
-    end)
-
-    table.insert(conns, conn)
-    customGui = billboard
-end
-
--- Hide default humanoid name & overhead map
-local function hideDefaultNameTag(character)
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        pcall(function()
-            humanoid.NameDisplayDistance = 0
-            humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-        end)
-    end
-
-    local head = character:FindFirstChild("Head")
-    if head then
-        for _, gui in ipairs(head:GetChildren()) do
-            hideGuiIfTarget(gui)
-        end
-        local conn = head.ChildAdded:Connect(function(child)
-            task.defer(function()
-                hideGuiIfTarget(child)
-            end)
-        end)
-        table.insert(conns, conn)
-    end
-end
-
--- Cleanup
-local function disconnectAll()
-    for _, c in ipairs(conns) do
-        if c.Disconnect then c:Disconnect() end
-    end
-    conns = {}
-end
-
--- Toggle handler
-local function setEnabled(state)
-    enabled = state
-    if state then
-        if LocalPlayer.Character then
-            hideDefaultNameTag(LocalPlayer.Character)
-            createNameTag(LocalPlayer.Character)
-        end
-    else
-        disconnectAll()
-        if customGui then
-            customGui:Destroy()
-            customGui = nil
-        end
-        restoreHiddenGuis() -- <== FIX: balikin semua overhead map
-    end
-end
-
--- Allow change name runtime
-_G.SetMyVisualName = function(newName)
-    currentName = tostring(newName)
-    if enabled and LocalPlayer.Character then
-        createNameTag(LocalPlayer.Character)
-    end
-end
-
--- Apply kalau respawn
-LocalPlayer.CharacterAdded:Connect(function(char)
-    if enabled then
-        char:WaitForChild("HumanoidRootPart", 5)
-        task.delay(1, function()
-            if enabled then
-                hideDefaultNameTag(char)
-                createNameTag(char)
-            end
-        end)
-    end
-end)
-
--- Start OFF
-setEnabled(false)
-
--- Rayfield toggle
-CreateMenuToggle(miscTab, "Hide Name", false, function(Value)
-    setEnabled(Value)
-end)
-
-print("Custom Name Success Loaded")
-
---// Services
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-
---// Vars
-local lp = Players.LocalPlayer
-local heartbeat = RunService.Heartbeat
-local rstepped = RunService.RenderStepped
-local zeroVec = Vector3.zero
-
--- state
-local noFallConnection = nil
-local enabled = false
-
--- fungsi aktifkan
-local function enableNoFall(chr)
-    local root = chr:WaitForChild("HumanoidRootPart", 5)
-    if not root then return end
-
-    noFallConnection = heartbeat:Connect(function()
-        if not root.Parent then
-            if noFallConnection then
-                noFallConnection:Disconnect()
-                noFallConnection = nil
-            end
-            return
-        end
-
-        local oldvel = root.AssemblyLinearVelocity
-        root.AssemblyLinearVelocity = zeroVec
-        rstepped:Wait()
-        root.AssemblyLinearVelocity = oldvel
-    end)
-end
-
--- fungsi matikan
-local function disableNoFall()
-    if noFallConnection then
-        noFallConnection:Disconnect()
-        noFallConnection = nil
-    end
-end
-
--- toggle menu
-CreateMenuToggle(toolsTab, "No Fall Damage", false, function(Value)
-    enabled = Value
-
+-- Toggle di PremiumTab → ON = GUI muncul, OFF = hilang
+CreateMenuToggle(toolsTab, "Teleport to Player GUI", false, function(Value)
+    ScreenGui.Enabled = Value
     if Value then
-        -- aktifkan sekarang
-        if lp.Character then
-            enableNoFall(lp.Character)
-        end
-        -- agar tetap aktif jika respawn
-        lp.CharacterAdded:Connect(function(char)
-            if enabled then
-                enableNoFall(char)
-            end
-        end)
-    else
-        disableNoFall()
+        UpdateList()
     end
 end)
+
+CreateMenuButton(toolsTab, "Run Anti AFK", function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
+    Rayfield:Notify({
+        Title = "Anti AFK",
+        Content = "✅ Script Anti AFK berhasil dijalankan!",
+        Duration = 4
+    })
+end)
+
+CreateMenuButton(toolsTab, "Teleport Tool", function()
+    local backpack = player:WaitForChild("Backpack")
+    for _, v in ipairs(backpack:GetChildren()) do if v:IsA("Tool") and v.Name == "Click Teleport" then v:Destroy() end end
+    if player.Character then for _, v in ipairs(player.Character:GetChildren()) do if v:IsA("Tool") and v.Name == "Click Teleport" then v:Destroy() end end end
+    local tool = Instance.new("Tool")
+    tool.Name = "Click Teleport"
+    tool.RequiresHandle = false
+    tool.CanBeDropped = false
+    tool.Parent = backpack
+    tool.Equipped:Connect(function(mouse)
+        local m = mouse or player:GetMouse()
+        local activatedConn
+        activatedConn = tool.Activated:Connect(function()
+            TeleportTo(m.Hit.p + Vector3.new(0,3,0))
+        end)
+        tool.Unequipped:Connect(function()
+            if activatedConn then activatedConn:Disconnect() end
+        end)
+    end)
+end)
+
+CreateMenuButton(toolsTab, "Respawn", function()
+    pcall(function() if player.Character then player.Character:BreakJoints() end end)
+end)
+
+CreateMenuButton(toolsTab, "Rejoin", function()
+    TeleportService:Teleport(game.PlaceId, player)
+end)
+
 
 Rayfield:LoadConfiguration()
