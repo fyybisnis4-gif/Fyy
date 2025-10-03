@@ -27,7 +27,7 @@ local ConfigurationSaving = {
 
 local Window = Rayfield:CreateWindow({
    Name = "Fyy Exploit Menu",
-   Icon = 0,
+   Icon = "activity",
    LoadingTitle = "Fyy Exploit Loader",
    LoadingSubtitle = "by Fyy",
    ShowText = "Fyy Exploit",
