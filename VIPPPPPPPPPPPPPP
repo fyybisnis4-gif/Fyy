@@ -3013,5 +3013,59 @@ CreateMenuButton(toolsTab, "Rejoin", function()
     TeleportService:Teleport(game.PlaceId, player)
 end)
 
+local RunAGEButtonEnabled = true
+ 
+CreateMenuButton(arunikaTab, "Auto Walk AGE", function()
+    -- Lock button jika sudah dijalankan
+    if not RunAGEButtonEnabled then
+        Rayfield:Notify({
+            Title = "Run Walk AGE",
+            Content = "⚠️ Fitur ini sudah dijalankan / dikunci!",
+            Duration = 4
+        })
+        return
+    end
+ 
+    -- Jalankan script
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/YahayukOnly/refs/heads/main/mount%20age.txt"))()
+ 
+    -- Notif sukses
+    Rayfield:Notify({
+        Title = "Run Walk AGE",
+        Content = "✅ Script berhasil dijalankan!",
+        Duration = 4
+    })
+ 
+    -- Lock button supaya tidak bisa dijalankan lagi
+    RunAGEButtonEnabled = false
+end)
+
+local RunANEHButtonEnabled = true
+ 
+CreateMenuButton(arunikaTab, "Auto Walk ANEH", function()
+    -- Lock button jika sudah dijalankan
+    if not RunANEHButtonEnabled then
+        Rayfield:Notify({
+            Title = "Run Walk ANEH",
+            Content = "⚠️ Fitur ini sudah dijalankan / dikunci!",
+            Duration = 4
+        })
+        return
+    end
+ 
+    -- Jalankan script
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/YahayukOnly/refs/heads/main/mount%20aneh.txt"))()
+ 
+    -- Notif sukses
+    Rayfield:Notify({
+        Title = "Run Walk ANEH",
+        Content = "✅ Script berhasil dijalankan!",
+        Duration = 4
+    })
+ 
+    -- Lock button supaya tidak bisa dijalankan lagi
+    RunANEHButtonEnabled = false
+end)
+
 
 Rayfield:LoadConfiguration()
