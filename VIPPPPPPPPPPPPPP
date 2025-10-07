@@ -2712,7 +2712,7 @@ CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
     end
  
     -- Jalankan script
-    loadstring(game:HttpGet("github.com/fyywannafly-sudo/age/blob/main/DAUN%20UNIVERSAL.txt"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/DAUN%20UNIVERSAL.txt"))()
  
     -- Notif sukses
     Rayfield:Notify({
