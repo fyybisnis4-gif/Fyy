@@ -1352,7 +1352,7 @@ CreateMenuButton(arunikaTab, "Auto Walk Arunika V2", function()
     end
 
     -- Jalankan script
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/GUI%20ARUNIKA.lua"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/ARUNIKA%20UNIVERSAL.txt"))()
 
     -- Notif sukses
     Rayfield:Notify({
@@ -2712,7 +2712,7 @@ CreateMenuButton(arunikaTab, "Auto Walk Daun V2", function()
     end
  
     -- Jalankan script
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyybisnis4-gif/Fyy/refs/heads/main/GUI%20DAUN.lua"))()
+    loadstring(game:HttpGet("github.com/fyywannafly-sudo/age/blob/main/DAUN%20UNIVERSAL.txt"))()
  
     -- Notif sukses
     Rayfield:Notify({
@@ -2741,7 +2741,7 @@ CreateMenuButton(arunikaTab, "Auto Walk Yahayuk V2", function()
     end
 
     -- Jalankan script
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/FyyExploit/refs/heads/main/BantaiYahayuk"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/YAHAYUK%20UNIV.txt"))()
 
     -- Notif sukses
     Rayfield:Notify({
@@ -2925,7 +2925,7 @@ CreateMenuButton(arunikaTab, "Auto Walk Atin V2", function()
     end
  
     -- Jalankan script
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/WalkOnly/refs/heads/main/ATIN%20WALK"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/atin.txt"))()
  
     -- Notif sukses
     Rayfield:Notify({
@@ -3027,7 +3027,7 @@ CreateMenuButton(arunikaTab, "Auto Walk AGE", function()
     end
  
     -- Jalankan script
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/YahayukOnly/refs/heads/main/mount%20age.txt"))()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/AGE%20UNIVERSAL.txt"))()
  
     -- Notif sukses
     Rayfield:Notify({
