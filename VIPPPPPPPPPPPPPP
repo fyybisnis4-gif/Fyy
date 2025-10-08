@@ -2577,30 +2577,30 @@ CreateMenuToggle(mountTab, "Hell Expedition", false, function(Value)
     HellExpeditionLoop = Value
     if not Value then return end
 
-    -- Spawn satu loop saja
     task.spawn(function()
         local player = game.Players.LocalPlayer
 
         local summitPositions = {
-            Vector3.new(-88, 202, 270),
-            Vector3.new(155, 250, 424),
-            Vector3.new(481, 355, 307),
-            Vector3.new(526, 413, -315),
-            Vector3.new(-227, 541, -757),
-            Vector3.new(-654, 541, -651),
-            Vector3.new(-817, 434, 442),
-            Vector3.new(-320, 410, 660),
-            Vector3.new(347, 331, 717),
-            Vector3.new(807, 637, 864),
-            Vector3.new(1253, 825, 395),
-            Vector3.new(1509, 1193, 18),
-            Vector3.new(1000, 1193, -58),
-            Vector3.new(-1513, 1874, -72)
+            Vector3.new(-147, 201, 259),
+            Vector3.new(152, 250, 424),
+            Vector3.new(510, 349, 293),
+            Vector3.new(566, 410, -314),
+            Vector3.new(-216, 545, -697),
+            Vector3.new(-650, 537, -646),
+            Vector3.new(-598, 449, -8),
+            Vector3.new(-763, 429, 425),
+            Vector3.new(-423, 433, 512),
+            Vector3.new(306, 353, 681),
+            Vector3.new(727, 614, 862),
+            Vector3.new(1252, 822, 427),
+            Vector3.new(1510, 1193, 114),
+            Vector3.new(995, 1194, -10),
+            Vector3.new(-1130, 1221, -65),
+            Vector3.new(-1627, 1301, -32)
         }
 
-        local interactPosition = Vector3.new(-1368, 1883, -185)
+        local interactPosition = Vector3.new(-1873, 1310, -145)
 
-        -- Fungsi teleport
         local function teleportTo(pos)
             local character = player.Character
             if character and character:FindFirstChild("HumanoidRootPart") then
@@ -2608,39 +2608,133 @@ CreateMenuToggle(mountTab, "Hell Expedition", false, function(Value)
             end
         end
 
-        -- Fungsi auto interact
-        local function autoInteract()
-            local character = player.Character
-            if character and character:FindFirstChild("HumanoidRootPart") then
-                local hrp = character.HumanoidRootPart
-                for _, prompt in pairs(workspace:GetDescendants()) do
-                    if prompt:IsA("ProximityPrompt") then
-                        local distance = (prompt.Parent.Position - hrp.Position).Magnitude
-                        if distance <= prompt.MaxActivationDistance then
-                            pcall(function()
+        -- ✅ FUNGSI SKIP TIME DULU
+        local function skipTime()
+            print("⏰ Skipping time...")
+            -- Cari dan interact dengan semua time skip prompt
+            for _, prompt in pairs(workspace:GetDescendants()) do
+                if prompt:IsA("ProximityPrompt") and HellExpeditionLoop then
+                    -- Cek jika ini time skip prompt (biasanya ada kata time, skip, dll)
+                    local promptName = string.lower(prompt.Name)
+                    local parentName = string.lower(prompt.Parent.Name)
+                    
+                    if string.find(promptName, "time") or 
+                       string.find(promptName, "skip") or 
+                       string.find(parentName, "time") or 
+                       string.find(parentName, "skip") then
+                        
+                        pcall(function()
+                            for i = 1, 5 do
                                 fireproximityprompt(prompt)
-                            end)
-                        end
+                                task.wait(0.2)
+                            end
+                            print("✅ Time skipped: " .. prompt.Name)
+                            return true
+                        end)
                     end
                 end
             end
+            return false
         end
 
-        -- Loop utama
+ -- ✅ FUNGSI INTERACT DI DEPAN (AUTO SKIP HOLD TIME)
+local function interactInFront()
+    local character = player.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then
+        return false
+    end
+
+    local hrp = character.HumanoidRootPart
+    local characterPos = hrp.Position
+    local lookVector = hrp.CFrame.LookVector
+    local frontPosition = characterPos + (lookVector * 5)
+
+    local foundPrompt = false
+
+    for _, prompt in pairs(workspace:GetDescendants()) do
+        if prompt:IsA("ProximityPrompt") and HellExpeditionLoop then
+            local promptParent = prompt.Parent
+            if not promptParent:IsA("BasePart") then continue end
+
+            local promptPos = promptParent.Position
+            local distance = (promptPos - frontPosition).Magnitude
+
+            if distance <= 6 then
+                pcall(function()
+                    -- ✅ Simulasikan hold time
+                    local holdTime = prompt.HoldDuration or 0
+                    if holdTime > 0 then
+                        -- tekan dan tahan
+                        fireproximityprompt(prompt, 1, true) -- "1" = hold begin
+                        task.wait(holdTime + 0.2)
+                        fireproximityprompt(prompt, 1, false) -- lepas
+                    else
+                        -- prompt tanpa hold
+                        fireproximityprompt(prompt)
+                    end
+
+                    print("✅ Interacted (skip hold): " .. prompt.Name .. " | HoldTime: " .. holdTime)
+                    foundPrompt = true
+                end)
+            end
+        end
+    end
+
+    return foundPrompt
+end
+
+
         while HellExpeditionLoop do
             -- Teleport ke semua posisi summit
             for _, pos in ipairs(summitPositions) do
                 if not HellExpeditionLoop then break end
                 teleportTo(pos)
-                task.wait(3)
+                task.wait(1)
             end
 
-            -- Teleport ke tempat interact dan auto interact
+            -- Teleport ke interact position
             if HellExpeditionLoop then
                 teleportTo(interactPosition)
                 task.wait(0.5)
-                autoInteract()
-                task.wait(0.5)
+                
+                -- ✅ STEP 1: SKIP TIME DULU
+                print("🔄 STEP 1: Skipping time...")
+                local timeSkipped = false
+                for attempt = 1, 5 do
+                    if not HellExpeditionLoop then break end
+                    
+                    timeSkipped = skipTime()
+                    if timeSkipped then
+                        print("✅ Time skip successful!")
+                        break
+                    end
+                    task.wait(0.5)
+                end
+                
+                -- Tunggu sebentar setelah skip time
+                task.wait(1)
+                
+                -- ✅ STEP 2: INTERACT DI DEPAN
+                print("🔄 STEP 2: Interacting with front prompt...")
+                local frontInteracted = false
+                for attempt = 1, 8 do
+                    if not HellExpeditionLoop then break end
+                    
+                    frontInteracted = interactInFront()
+                    if frontInteracted then
+                        print("✅ Front interaction successful!")
+                        break
+                    end
+                    task.wait(0.5)
+                end
+                
+                if timeSkipped and frontInteracted then
+                    print("🎉 COMPLETE: Both time skip and front interaction done!")
+                else
+                    print("⚠️  Some steps may have failed")
+                end
+                
+                task.wait(2)
             end
         end
     end)
@@ -2975,14 +3069,42 @@ CreateMenuToggle(toolsTab, "Teleport to Player GUI", false, function(Value)
     end
 end)
 
-CreateMenuButton(toolsTab, "Run Anti AFK", function()
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/hassanxzayn-lua/Anti-afk/main/antiafkbyhassanxzyn"))()
-    Rayfield:Notify({
-        Title = "Anti AFK",
-        Content = "✅ Script Anti AFK berhasil dijalankan!",
-        Duration = 4
-    })
+CreateMenuToggle(toolsTab, "Run Anti AFK", false, function(Value)
+    AntiAFK_Enabled = Value
+    if not Value then
+        print("⛔ Anti AFK stopped.")
+        return
+    end
+
+    print("✅ Anti AFK running...")
+
+    task.spawn(function()
+        local vu = game:GetService("VirtualUser")
+        local Players = game:GetService("Players")
+        local player = Players.LocalPlayer
+
+        -- Saat idle, kirim input palsu (klik kanan)
+        player.Idled:Connect(function()
+            if not AntiAFK_Enabled then return end
+            pcall(function()
+                vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(1)
+                vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+            end)
+            print("💤 Anti-AFK triggered (idle reset)")
+        end)
+
+        -- Putar kamera tiap 60 detik biar makin aman
+        while AntiAFK_Enabled do
+            local cam = workspace.CurrentCamera
+            if cam then
+                cam.CFrame *= CFrame.Angles(0, math.rad(10), 0)
+            end
+            task.wait(60)
+        end
+    end)
 end)
+
 
 CreateMenuButton(toolsTab, "Teleport Tool", function()
     local backpack = player:WaitForChild("Backpack")
