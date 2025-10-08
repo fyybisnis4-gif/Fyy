@@ -3067,5 +3067,32 @@ CreateMenuButton(arunikaTab, "Auto Walk ANEH", function()
     RunANEHButtonEnabled = false
 end)
 
+local RunPengangguranButtonEnabled = true
+ 
+CreateMenuButton(arunikaTab, "Auto Walk Pengangguran", function()
+    -- Lock button jika sudah dijalankan
+    if not RunYahayukV2ButtonEnabled then
+        Rayfield:Notify({
+            Title = "Run Walk PENGANGGURAN",
+            Content = "⚠️ Fitur ini sudah dijalankan / dikunci!",
+            Duration = 4
+        })
+        return
+    end
+ 
+    -- Jalankan script
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/PremKeySystemXd/refs/heads/main/MT%20NGANGGUR"))()
+ 
+    -- Notif sukses
+    Rayfield:Notify({
+        Title = "Run Walk PENGANGGURAN",
+        Content = "✅ Script berhasil dijalankan!",
+        Duration = 4
+    })
+ 
+    -- Lock button supaya tidak bisa dijalankan lagi
+    RunPengangguranButtonEnabled = false
+end)
+
 
 Rayfield:LoadConfiguration()
