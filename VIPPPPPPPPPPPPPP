@@ -3216,5 +3216,38 @@ CreateMenuButton(arunikaTab, "Auto Walk Pengangguran", function()
     RunPengangguranButtonEnabled = false
 end)
 
+CreateMenuButton(toolsTab, "GEDEIN CP WAHYU", function()
+
+    local scaleFactor = 7
+    local checkpoints = workspace:FindFirstChild("Checkpoints")
+
+    if not checkpoints then
+        warn("❌ cp ga nemu")
+        return
+    end
+
+    for i = 1, 5 do
+        local cp = checkpoints:FindFirstChild("CP" .. i)
+        if cp then
+            local touchPart = cp:FindFirstChild("TouchPart")
+            if touchPart and touchPart:IsA("BasePart") then
+                local oldSize = touchPart.Size
+                local oldCFrame = touchPart.CFrame
+
+                touchPart.Size = oldSize * scaleFactor
+                touchPart.CFrame = oldCFrame
+
+                print("✅ Diperbesar:", cp.Name .. ".TouchPart x" .. scaleFactor)
+            else
+                warn("⚠️ CP" .. i .. " tidak ada TouchPart")
+            end
+        else
+            warn("⚠️ CP" .. i .. " tidak ditemukan")
+        end
+    end
+
+    print("✅ Semua CP1–CP5 berhasil diperbesar x" .. scaleFactor)
+end)
+
 
 Rayfield:LoadConfiguration()
