@@ -460,6 +460,146 @@ local HideNameToggle = Player:Toggle({
     end
 })
 
+local espEnabled = false
+local espConnections = {}
+
+-- Function untuk enable ESP
+local function enableESPForPlayer(plr)
+    local char = plr.Character
+    if not char then return end
+    
+    -- Hapus ESP lama jika ada
+    if char:FindFirstChild("FyyESP") then
+        char.FyyESP:Destroy()
+    end
+    if char:FindFirstChild("Head") and char.Head:FindFirstChild("FyyNameBill") then
+        char.Head.FyyNameBill:Destroy()
+    end
+    
+    -- Buat Highlight
+    local hl = Instance.new("Highlight")
+    hl.Name = "FyyESP"
+    hl.FillColor = Color3.fromRGB(255, 0, 0)
+    hl.OutlineColor = Color3.fromRGB(255, 255, 255)
+    hl.FillTransparency = 0.5
+    hl.OutlineTransparency = 0
+    hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    hl.Parent = char
+    
+    -- Buat Billboard
+    if char:FindFirstChild("Head") then
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "FyyNameBill"
+        billboard.Size = UDim2.new(0, 100, 0, 20)
+        billboard.StudsOffset = Vector3.new(0, 3.5, 0)
+        billboard.AlwaysOnTop = true
+        billboard.MaxDistance = 500
+        
+        local tl = Instance.new("TextLabel")
+        tl.Size = UDim2.new(1, 0, 1, 0)
+        tl.BackgroundTransparency = 1
+        tl.Text = plr.Name
+        tl.TextColor3 = Color3.new(1, 1, 1)
+        tl.TextStrokeColor3 = Color3.new(0, 0, 0)
+        tl.TextStrokeTransparency = 0
+        tl.TextScaled = true
+        tl.Font = Enum.Font.GothamBold
+        tl.Parent = billboard
+        
+        billboard.Parent = char.Head
+    end
+end
+
+-- Function untuk disable ESP player
+local function disableESPForPlayer(plr)
+    local char = plr.Character
+    if char then
+        if char:FindFirstChild("FyyESP") then
+            char.FyyESP:Destroy()
+        end
+        if char:FindFirstChild("Head") and char.Head:FindFirstChild("FyyNameBill") then
+            char.Head.FyyNameBill:Destroy()
+        end
+    end
+end
+
+-- Function untuk setup ESP semua player
+local function setupESP()
+    -- Setup existing players
+    for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+        if plr ~= game:GetService("Players").LocalPlayer then
+            if espEnabled then
+                if plr.Character then
+                    enableESPForPlayer(plr)
+                end
+                
+                -- Connect character added
+                espConnections[plr] = plr.CharacterAdded:Connect(function(char)
+                    task.wait(1)
+                    enableESPForPlayer(plr)
+                end)
+            else
+                disableESPForPlayer(plr)
+                if espConnections[plr] then
+                    espConnections[plr]:Disconnect()
+                    espConnections[plr] = nil
+                end
+            end
+        end
+    end
+    
+    -- Setup new players
+    espConnections.playerAdded = game:GetService("Players").PlayerAdded:Connect(function(plr)
+        if espEnabled then
+            espConnections[plr] = plr.CharacterAdded:Connect(function(char)
+                task.wait(1)
+                enableESPForPlayer(plr)
+            end)
+        end
+    end)
+end
+
+-- Toggle utama ESP
+local ESPToggle = Player:Toggle({
+    Title = "Player ESP",
+    Type = "Toggle",
+    Default = false,
+    Callback = function(state)
+        espEnabled = state
+        
+        if espEnabled then
+            -- Enable ESP
+            setupESP()
+            WindUI:Notify({
+                Title = "Player ESP",
+                Content = "ESP Enabled",
+                Duration = 3
+            })
+        else
+            -- Disable ESP
+            for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
+                if plr ~= game:GetService("Players").LocalPlayer then
+                    disableESPForPlayer(plr)
+                end
+            end
+            
+            -- Cleanup connections
+            for plr, connection in pairs(espConnections) do
+                if connection then
+                    connection:Disconnect()
+                end
+            end
+            espConnections = {}
+            
+            WindUI:Notify({
+                Title = "Player ESP",
+                Content = "ESP Disabled",
+                Duration = 3
+            })
+        end
+    end
+})
+
 local AntiLagButton = Player:Button({
     Title = "Apply Anti Lag",
     Desc = "Optimalkan game untuk mengurangi lag",
