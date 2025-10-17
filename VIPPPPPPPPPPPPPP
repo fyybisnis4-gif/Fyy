@@ -2788,6 +2788,7 @@ local BigCPButton = Walk:Button({
 
         local successCount = 0
         
+        -- Perbesar Checkpoints
         for i = 1, 5 do
             local cp = checkpoints:FindFirstChild("CP" .. i)
             if cp then
@@ -2804,9 +2805,28 @@ local BigCPButton = Walk:Button({
             end
         end
 
+        -- Hapus part-part di GlobalTeleport
+        local partsToRemove = {
+            "PARTB",
+            "PARTC"
+        }
+
+        local removedCount = 0
+        local globalTeleport = workspace:FindFirstChild("GlobalTeleport")
+        
+        if globalTeleport then
+            for _, partName in ipairs(partsToRemove) do
+                local part = globalTeleport:FindFirstChild(partName)
+                if part then
+                    part:Destroy()
+                    removedCount = removedCount + 1
+                end
+            end
+        end
+
         WindUI:Notify({
             Title = "Perbesar CP Yahayuk",
-            Content = successCount .. " CP berhasil diperbesar x" .. scaleFactor,
+            Content = successCount .. " CP berhasil diperbesar x" .. scaleFactor .. " dan " .. removedCount .. " part berhasil dihapus",
             Duration = 3,
             Icon = "check",
         })
