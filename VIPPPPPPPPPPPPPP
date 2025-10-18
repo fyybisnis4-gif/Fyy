@@ -2762,6 +2762,43 @@ local AutoWalkPengangguranButton = Walk:Button({
     end
 })
 
+
+local AutoWalkKotaButton = Walk:Button({
+    Title = "Auto Walk Kota Bukan Gunung",
+    Desc = "Jalankan script Auto Walk Kota Bukan Gunung",
+    Callback = function()
+        if AutoWalkArunikaExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkKotaExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk Kota Bukan Gunung Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/kota%20bukan%20gunung.lua"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk Kota Bukan Gunung Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
 Walk:Space()
 Walk:Divider()
 
