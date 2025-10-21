@@ -2740,7 +2740,7 @@ local AutoWalkPengangguranButton = Walk:Button({
             return
         end
         
-        AutoWalkPengangguranExecuted = true
+        AutoWalkExecuted = true
         
         WindUI:Notify({
             Title = "Auto Walk",
@@ -2767,7 +2767,7 @@ local AutoWalkKotaButton = Walk:Button({
     Title = "Auto Walk Kota Bukan Gunung",
     Desc = "Jalankan script Auto Walk Kota Bukan Gunung",
     Callback = function()
-        if AutoWalkArunikaExecuted then
+        if AutoWalkKotaExecuted then
             WindUI:Notify({
                 Title = "Auto Walk",
                 Content = "Auto Walk Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
@@ -2793,6 +2793,45 @@ local AutoWalkKotaButton = Walk:Button({
         WindUI:Notify({
             Title = "Auto Walk",
             Content = "Auto Walk Kota Bukan Gunung Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
+
+local AutoWalkMULUExecuted = false
+
+local AutoWalkMULUButton = Walk:Button({
+    Title = "Auto Walk MT MULU",
+    Desc = "Jalankan script Auto Walk Pengangguran",
+    Callback = function()
+        if AutoWalkMULUExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT MULU Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkMULUExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT MULU Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/MT%20MULU"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT MULU Sudah DiJalankan",
             Duration = 3,
             Icon = "check",
         })
