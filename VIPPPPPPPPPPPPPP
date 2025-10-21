@@ -2804,7 +2804,7 @@ local AutoWalkMULUExecuted = false
 
 local AutoWalkMULUButton = Walk:Button({
     Title = "Auto Walk MT MULU",
-    Desc = "Jalankan script Auto Walk Pengangguran",
+    Desc = "Jalankan script Auto Walk MT MULU",
     Callback = function()
         if AutoWalkMULUExecuted then
             WindUI:Notify({
