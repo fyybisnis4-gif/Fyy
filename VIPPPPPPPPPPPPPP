@@ -2838,6 +2838,44 @@ local AutoWalkMULUButton = Walk:Button({
     end
 })
 
+local AutoWalkkawahxecuted = false
+
+local AutoWalkkawahButton = Walk:Button({
+    Title = "Auto Walk MT KAWAH",
+    Desc = "Jalankan script Auto Walk MT KAWAH",
+    Callback = function()
+        if AutoWalkkawahExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT KAWAH Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkkawahExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT KAWAH Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/kawah"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT KAWAH Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
 Walk:Space()
 Walk:Divider()
 
