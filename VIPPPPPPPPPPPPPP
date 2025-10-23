@@ -2876,6 +2876,44 @@ local AutoWalkkawahButton = Walk:Button({
     end
 })
 
+local AutoWalkFUNNYexecuted = false
+
+local AutoWalkFUNNYButton = Walk:Button({
+    Title = "Auto Walk MT FUNNY",
+    Desc = "Jalankan script Auto Walk MT FUNNY",
+    Callback = function()
+        if AutoWalkFUNNYExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT FUNNY Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkFUNNYExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT FUNNY Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/PremKeySystemXd/refs/heads/main/mt%20funny.lua"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT FUNNY Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
 Walk:Space()
 Walk:Divider()
 
