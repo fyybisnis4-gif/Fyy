@@ -19,7 +19,7 @@ WindUI:AddTheme({
 })
 local Window = WindUI:CreateWindow({
     Title = "FyyExploit",
-    Icon = "slack", 
+    Icon = "rbxassetid://106899268176689", 
     Author = "Fyy X Mount",
     Folder = "FyyConfig",
     
@@ -33,14 +33,6 @@ local Window = WindUI:CreateWindow({
     BackgroundImageTransparency = 0.42,
     HideSearchBar = false,
     ScrollBarEnabled = false,
-    
-    User = {
-        Enabled = false,
-        Anonymous = true,
-        Callback = function()
-            print("clicked")
-        end,
-    },
 })
 
 Window:SetToggleKey(Enum.KeyCode.G)
@@ -50,6 +42,27 @@ WindUI:Notify({
     Content = "Press G To Open/Close Menu!",
     Duration = 4, 
     Icon = "slack",
+})
+
+Window:EditOpenButton({
+    Title = "FyyCommunity",
+    Icon = "rbxassetid://106899268176689",
+    CornerRadius = UDim.new(0,16),
+    StrokeThickness = 2,
+    Color = ColorSequence.new( -- gradient
+        Color3.fromHex("FF0F7B"), 
+        Color3.fromHex("F89B29")
+    ),
+    OnlyMobile = true,
+    Enabled = true,
+    Draggable = true,
+})
+
+Window:SetIconSize(35) 
+Window:Tag({
+    Title = "Premium",
+    Color = Color3.fromHex("#30ff6a"),
+    Radius = 13, -- from 0 to 13
 })
 ---------------- TAB ---------------
 
@@ -370,7 +383,7 @@ local function createNameTag(character)
             pcall(function() conn:Disconnect() end)
             return
         end
-        t += dt
+        t = t + dt
         label.TextColor3 = rainbowColor(t)
         label.Text = currentName
     end)
@@ -2029,7 +2042,7 @@ local function waitForHRP(char, timeout)
         local hrp = char:FindFirstChild("HumanoidRootPart")
         if hrp then return hrp end
         task.wait(0.1)
-        t += 0.1
+        t = t + 0.1
     until t >= timeout
     return nil
 end
@@ -2179,7 +2192,7 @@ local HellExpeditionToggle = Auto:Toggle({
                 for _, prompt in pairs(workspace:GetDescendants()) do
                     if prompt:IsA("ProximityPrompt") and HellExpeditionLoop then
                         local promptParent = prompt.Parent
-                        if not promptParent:IsA("BasePart") then continue end
+                        if not promptParent:IsA("BasePart") then  end
 
                         local promptPos = promptParent.Position
                         local distance = (promptPos - frontPosition).Magnitude
@@ -3414,7 +3427,7 @@ local AntiAFKToggle = Tools:Toggle({
             while AntiAFK_Enabled do
                 local cam = workspace.CurrentCamera
                 if cam then
-                    cam.CFrame *= CFrame.Angles(0, math.rad(10), 0)
+                    cam.CFrame = CFrame.Angles(0, math.rad(10), 0)
                 end
                 task.wait(60)
             end
