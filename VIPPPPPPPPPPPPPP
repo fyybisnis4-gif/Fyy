@@ -137,7 +137,7 @@ local function copyLink(link, buttonTitle, notifTitle, notifContent)
                 Icon = "bell",
             })
 
-            print("Link copied:", link) -- optional log
+            print("Link copied:", link)
         end
     })
 
@@ -2921,6 +2921,120 @@ local AutoWalkFUNNYButton = Walk:Button({
         WindUI:Notify({
             Title = "Auto Walk",
             Content = "Auto Walk MT FUNNY Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
+local AutoWalkKITAexecuted = false
+
+local AutoWalkKITAButton = Walk:Button({
+    Title = "Auto Walk MT KITA",
+    Desc = "Jalankan script Auto Walk MT KITA",
+    Callback = function()
+        if AutoWalkKITAExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT FUNNY Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkKITAExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT KITA Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/mt%20kita"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT KITA Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
+local AutoWalkAYRINEexecuted = false
+
+local AutoWalkAYRINEButton = Walk:Button({
+    Title = "Auto Walk MT AYRINE",
+    Desc = "Jalankan script Auto Walk MT AYRINE",
+    Callback = function()
+        if AutoWalkAYRINEExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT FUNNY Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkAYRINEExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT AYRINE Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/MT%20AYRINE"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT AYRINE Sudah DiJalankan",
+            Duration = 3,
+            Icon = "check",
+        })
+    end
+})
+
+local AutoWalkFREESTYLEexecuted = false
+
+local AutoWalkFREESTYLEButton = Walk:Button({
+    Title = "Auto Walk MT FREESTYLE",
+    Desc = "Jalankan script Auto Walk MT FREESTYLE",
+    Callback = function()
+        if AutoWalkFREESTYLEExecuted then
+            WindUI:Notify({
+                Title = "Auto Walk",
+                Content = "Auto Walk MT FUNNY Sudah Di Jalankan Tidak Bisa Di Jalankan Lagi",
+                Duration = 3,
+                Icon = "x",
+            })
+            return
+        end
+        
+        AutoWalkFREESTYLEExecuted = true
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT FREESTYLE Sedang Dijalankan...",
+            Duration = 3,
+            Icon = "loader",
+        })
+        
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/fyywannafly-sudo/age/refs/heads/main/MT%20FREESTYLE"))()
+        
+        task.wait(2)
+        
+        WindUI:Notify({
+            Title = "Auto Walk",
+            Content = "Auto Walk MT FREESTYLE Sudah DiJalankan",
             Duration = 3,
             Icon = "check",
         })
