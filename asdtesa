@@ -1001,7 +1001,7 @@ local thread=nil
 local casts=0
 local start=0
 
-local CD=.008
+local CD=.005
 local FD=.7
 local KD=.3
 
@@ -5299,7 +5299,7 @@ EnchantTab()
 DiscordTab()
 SettingTab()
 MiscTab()
-task.wait(10)
+task.wait(5)
 ConfigTab()
 break
 end
